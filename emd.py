@@ -23,6 +23,7 @@ import sys
 
 def OBJ(i):
     return max(i) - min(i)
+    # return 0 if max(i) == min(i) else 1
 
 def greedy_primal_dual(aa):
     sum_aa = [sum(_) for _ in aa]
