@@ -40,9 +40,29 @@ def lp_1d_bary(data, M, n, d):
 	return bary, bary_log['fun']
 
 
-def demd(data):
+def demd(data, n, d):
     log = greedy_primal_dual(data)
-    return log['x'], log['primal objective']
+
+    #nonzeros = {}
+    #for tmp in log['x'].keys():
+    #    if log['x'][tmp] > 0.00001:
+    #        print(log['x'][tmp])
+    #        nonzeros[tmp] = log['x'][tmp]
+
+    # get graph
+    M = np.zeros([n, d])
+    y_J = log['dual']
+    for i in range(1,n):
+        for j in range(d):
+            M[i,j] = y_J[j][i] - y_J[j][i-1]
+
+    M = M[1:,:]
+
+    #print('should be rowsparse:')
+    #print(M)
+
+
+    return log['primal objective'], log['dual'], np.transpose(M)
 
 def compare_all(data, M, n, d):
 
@@ -53,7 +73,7 @@ def compare_all(data, M, n, d):
     #print('\t Obj\t: ', sink_obj)
     #print('SumBaryDist\t: ', sum_2d_emd_dists(data, sink_bary/np.sum(sink_bary), M))
     print('\t Obj\t: ', sum_2d_emd_dists(data, sink_bary/np.sum(sink_bary), M))
-    print('\t Bary\t: ', sink_bary)
+    #print('\t Bary\t: ', sink_bary)
     print('\t Time\t: ', sink_time)
 
     print('')
@@ -62,24 +82,27 @@ def compare_all(data, M, n, d):
     ip_bary, ip_obj = lp_1d_bary(np.vstack(data).T, M, n, d)
     ip_time = ot.toc('')
     print('\t Obj\t: ', ip_obj)
-    print('\t Bary\t: ', ip_bary)
+    #print('\t Bary\t: ', ip_bary)
     print('\t Time\t: ', ip_time)
 
     print('')
     print('\tD-EMD Algorithm:')
     ot.tic()
-    demd_bary, demd_obj = demd(data)
+    demd_obj, demd_dual, demd_graph = demd(data, n, d)
     demd_time = ot.toc('')
     print('\t Obj\t: ', demd_obj)
-    print('\t Bary\t: ', demd_bary)
+    #print('\t Dual\t: ', demd_dual)
+    #print('\t Bary\t: ', demd_bary)
+    #print('\t Graph\t: ')
+    #print(demd_graph)
     print('\t Time\t: ', demd_time)
 
-    # print('')
-    # print('\tFull CVXOPT:')
-    # ot.tic()
-    # cvx_obj = cvxprimal(data)['primal objective']
-    # cvx_time = ot.toc('')
-    # print('\t Obj\t: ', cvx_obj)
-    # print('\t Time\t: ', cvx_time)
+    print('')
+    print('\tFull CVXOPT:')
+    ot.tic()
+    cvx_obj = cvxprimal(data)['primal objective']
+    cvx_time = ot.toc('')
+    print('\t Obj\t: ', cvx_obj)
+    print('\t Time\t: ', cvx_time)
 
 
