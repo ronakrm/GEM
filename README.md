@@ -1,7 +1,7 @@
 # Minimizing Earth Movers Distance
 Currently using SciPy approx_fprime to move distributions 'closer' to each other.
 
-Run `python diff.py`.
+Run `python diff_test.py`.
 
 
 
@@ -13,8 +13,8 @@ Run `python diff.py`.
 
 ## Setup
 ```
+pipenv install
 pipenv shell
-pipenv install Pipfile.lock
 ```
 
 ### Dependencies

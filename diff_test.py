@@ -5,7 +5,7 @@ import ot
 from emd import greedy_primal_dual
 
 n = 5
-d = 2
+d = 3
 vecsize = n*d
 
 def vectorize(x, vecsize):
@@ -59,10 +59,12 @@ def minimize(f, x_0, niters=100, lr=0.1):
         gn = np.linalg.norm(grad)
         funcval = f(x)
         
-        print(f'Iter {i:2.0f}:\tObj:\t{funcval:.4f}\tGradNorm:\t{gn:.4f}')
+        if i % 100 == 0:
+            print(f'Iter {i:2.0f}:\tObj:\t{funcval:.4f}\tGradNorm:\t{gn:.4f}')
 
     print('d1:', x[:5])
-    print('d2:', x[5:])
+    print('d2:', x[5:10])
+    print('d2:', x[10:])
     return
 
 
@@ -79,7 +81,8 @@ if __name__ == "__main__":
 
     a1 = np.array([0.5, 0.2, 0.1, 0.1, 0.1])
     a2 = np.array([0.2, 0.1, 0.2, 0.3, 0.2])
-    data = [a1, a2]
+    a3 = np.array([0.1, 0.1, 0.5, 0.1, 0.1])
+    data = [a1, a2, a3]
     d = len(data)
     print(data)
 
@@ -88,6 +91,6 @@ if __name__ == "__main__":
     data = np.array(data)
     data = vectorize(data, vecsize)
 
-    minimize(demd_func, data, niters=2000, lr=0.001)
+    minimize(demd_func, data, niters=500, lr=0.001)
 
    
