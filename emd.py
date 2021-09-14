@@ -27,7 +27,7 @@ def OBJ(i):
 
 def greedy_primal_dual(aa):
     sum_aa = [sum(_) for _ in aa]
-    assert abs(max(sum_aa)-min(sum_aa)) < 1e-10
+    #assert abs(max(sum_aa)-min(sum_aa)) < 1e-10
     AA = [np.copy(_) for _ in aa]
 
     dims = tuple([len(_) for _ in AA])
