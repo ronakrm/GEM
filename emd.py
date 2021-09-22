@@ -25,7 +25,7 @@ def OBJ(i):
     return max(i) - min(i)
     # return 0 if max(i) == min(i) else 1
 
-def greedy_primal_dual(aa):
+def greedy_primal_dual(aa, verbose=False):
     sum_aa = [sum(_) for _ in aa]
     #assert abs(max(sum_aa)-min(sum_aa)) < 1e-10
     AA = [np.copy(_) for _ in aa]
@@ -33,9 +33,11 @@ def greedy_primal_dual(aa):
     dims = tuple([len(_) for _ in AA])
     xx = {}
     dual = [np.zeros(d) for d in dims]
-    test_dual = [np.zeros(d) for d in dims]
+
     idx = [0,]*len(AA)
     obj = 0
+    if verbose:
+        print('i minval oldidx\t\tobj\t\tvals')
     while all([i < _ for _, i in zip(dims, idx)]):
         vals = [v[i] for v, i in zip(AA, idx)]
         minval = min(vals)
@@ -47,6 +49,8 @@ def greedy_primal_dual(aa):
         idx[i] += 1
         if idx[i]<dims[i]:
             dual[i][idx[i]] += OBJ(idx) - OBJ(oldidx) + dual[i][idx[i]-1]
+        if verbose:
+            print(i, minval, oldidx, obj, '\t', vals)
 
     # the above terminates when any entry in idx equals the corresponding value in dims
     # this leaves other dimensions incomplete; the remaining terms of the dual solution 
