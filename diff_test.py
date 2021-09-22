@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     a1 = np.array([0.5, 0.2, 0.1, 0.1, 0.1])
     a2 = np.array([0.2, 0.1, 0.2, 0.3, 0.2])
-    a3 = np.array([0.1, 0.1, 0.5, 0.1, 0.1])
+    a3 = np.array([0.1, 0.1, 0.5, 0.2, 0.1])
     data = [a1, a2, a3]
     d = len(data)
     print(data)
