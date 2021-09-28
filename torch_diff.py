@@ -2,17 +2,11 @@ import torch
 import numpy as np
 import ot
 from torch.autograd import grad as agrad
-import torch.nn.functional as f
+import time
 
-from emd import greedy_primal_dual
 from emd_torch import torch_greedy_primal_dual
 
 from diff_test import takeStep
-
-n = 5
-d = 3
-vecsize = n*d
-epsilon = 1e-8
 
 # def demdTorch(inp):
 #     x = inp.detach().cpu().numpy()
@@ -46,26 +40,38 @@ def torch_demd_func(x):
 #         gradient = -(out - out_prime) / epsilon
 #         return grad_output
 
-class dEMD(torch.nn.Module):
-    def __init__(self):
-        super(self.__name__, self).__init__()
+# class dEMD(torch.nn.Module):
+#     def __init__(self):
+#         super(self.__name__, self).__init__()
 
-    def forward(x):
-        return torch_demd_func(x)
+#         self.fc1 = torch.nn.Linear()
+
+#     def forward(x):
+#         return torch_demd_func(x)
 
 
-def minimize(func, x_0, niters=100, lr=0.1):
+def minimize(func, x_0, niters=100, lr=0.1, verbose=False):
 
     # opt = torch.optim.SGD(x, lr=lr)
 
     x = x_0
-    funcval = func(x)
 
-    grad, = agrad(outputs=funcval, inputs=x, allow_unused=True)
+    if verbose:
+        tic = time.time()
+        funcval = func(x)
+        print(time.time()-tic, ' seconds for forward.')
+
+        tic = time.time()
+        grad, = agrad(outputs=funcval, inputs=x, allow_unused=True)
+        print(time.time()-tic, ' seconds for gradient.')
+    else:
+        funcval = func(x)
+        grad, = agrad(outputs=funcval, inputs=x, allow_unused=True)
+
     #print(grad)
     #print(torch_greedy_primal_dual(x)['dual'])
     #import pdb; pdb.set_trace()
-    
+
     gn = torch.linalg.norm(grad)
 
     print(f'Inital:\t\tObj:\t{funcval:.4f}\tGradNorm:\t{gn:.4f}')
@@ -111,8 +117,6 @@ if __name__ == "__main__":
     d = len(data)
     print(data)
 
-    vecsize = n*d
-
     # data = np.array(data)
     # data = vectorize(data, vecsize)
 
@@ -127,6 +131,6 @@ if __name__ == "__main__":
     # model = dEMD(epsilon=epsilon)
     func = torch_demd_func
     # func = dEMD(torch_data)
-    minimize(func, torch_data, niters=500, lr=0.001)
+    minimize(func, torch_data, niters=500, lr=0.001, verbose=True)
 
    
