@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import numpy as np
 
 # Torch Implementation of algorithm listed in 
@@ -19,51 +20,66 @@ def OBJ(i):
     return max(i) - min(i)
     # return 0 if max(i) == min(i) else 1
 
-def torch_greedy_primal_dual(aa, verbose=False):
-    # aa is a Torch matrix with d rows, n columns
+class dEMD(nn.Module):
+    def __init__(self, cost=OBJ, verbose=False):
+        super().__init__()
 
-    d, n = aa.shape
+        self.cost = cost
+        self.verbose = verbose
 
-    sum_aa = aa.sum(axis=1)
-    # assert abs(max(sum_aa)-min(sum_aa)) < 1e-10
+    def forward(self, x):
+        d, n = x.shape
 
-    AA = aa.clone()
+        # sum_aa = x.sum(axis=1)
+        # assert abs(max(sum_aa)-min(sum_aa)) < 1e-10
 
-    xx = {}
-    dual = torch.zeros(d,n)
-    idx = [0,]*d
-    obj = 0
+        AA = x.clone()
 
-    if verbose:
-        print('i minval oldidx\t\tobj\t\tvals')
+        xx = {}
+        dual = torch.zeros(d,n)
+        idx = [0,]*d
+        obj = 0
 
-    while all([i < n for i in idx]):
+        if self.verbose:
+            print('i minval oldidx\t\tobj\t\tvals')
 
-        vals = [AA[i,j] for i,j in zip(range(d), idx)]
+        while all([i < n for i in idx]):
 
-        minval = min(vals).clone()
-        ind = vals.index(minval)
-        xx[tuple(idx)] = minval
-        obj += (OBJ(idx)) * minval
-        for i,j in zip(range(d), idx): AA[i,j] -= minval
-        oldidx = np.copy(idx)
-        idx[ind] += 1
-        if idx[ind]<n:
-            dual[ind,idx[ind]] += OBJ(idx) - OBJ(oldidx) + dual[ind,idx[ind]-1]
-        if verbose:
-            print(ind, minval.item(), oldidx, obj.item(), '\t', vals)
+            vals = [AA[i,j] for i,j in zip(range(d), idx)]
 
-    # the above terminates when any entry in idx equals the corresponding value in dims
-    # this leaves other dimensions incomplete; the remaining terms of the dual solution 
-    # must be filled-in
-    for _, i in enumerate(idx):
-        try: dual[_,i:] = dual[_,i]
-        except: pass
+            minval = min(vals).clone()
+            ind = vals.index(minval)
+            xx[tuple(idx)] = minval
+            obj += (OBJ(idx)) * minval
+            for i,j in zip(range(d), idx): AA[i,j] -= minval
+            oldidx = np.copy(idx)
+            idx[ind] += 1
+            if idx[ind]<n:
+                dual[ind,idx[ind]] += self.cost(idx) - self.cost(oldidx) + dual[ind,idx[ind]-1]
+            if self.verbose:
+                print(ind, minval.item(), oldidx, obj.item(), '\t', vals)
 
-    dualobj = sum([aa[i,:].dot(dual[i,:]) for i in range(d)])
-    
-    return {'x': xx, 'primal objective': obj,
-            'dual': dual, 'dual objective': dualobj}
+        return obj
+
+
+class FairEMD(nn.Module):
+    def __init__(self, cost=OBJ, discretization=10, verbose=False):
+        super().__init__()
+
+        self.cost = cost
+        self.verbose = verbose
+
+
+    def forward(output, group_labels):
+
+        # first organize output into distributions.
+
+        # discretize to bins
+
+        gro
+
+        fairObj = self.fairMeasure(grouped_dists)
+        return fairObj
 
 
 if __name__ == '__main__':

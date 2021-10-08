@@ -51,15 +51,16 @@ def minimize(f, x_0, niters=100, lr=0.1):
     print(f'Inital:\t\tObj:\t{funcval:.4f}\tGradNorm:\t{gn:.4f}')
 
     for i in range(niters):
+
+        x = renormalize(x)
+        funcval = f(x)
+        
         grad = approxGrad(f, x)
         x = takeStep(x, grad, lr)
 
-        x = renormalize(x)
-
         gn = np.linalg.norm(grad)
-        funcval = f(x)
-        
-        if i % 100 == 0:
+                
+        if i % 10 == 0:
             print(f'Iter {i:2.0f}:\tObj:\t{funcval:.4f}\tGradNorm:\t{gn:.4f}')
 
     print('d1:', x[:5])
