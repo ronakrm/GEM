@@ -23,19 +23,31 @@ def minimize(func, x_0, niters=100, lr=0.1, verbose=False):
 
     for i in range(niters):
 
-        nx = x / (torch.sum(x, 1).unsqueeze(-1))
+        with torch.no_grad():
+            denom = (torch.sum(x, 1).unsqueeze(-1))
+            # print(denom)
+        
+        nx = x / denom
+        # print(nx)
         funcval = func(nx)
 
         opt.zero_grad()
         funcval.backward()
+        # print(x.grad)
         opt.step()
 
         gn = np.linalg.norm(x.grad)
         
-        if i % 10 == 0:
+        if i % 100 == 0:
             print(f'Iter {i:2.0f}:\tObj:\t{funcval:.4f}\tGradNorm:\t{gn:.4f}')
 
-    print(x)
+
+    with torch.no_grad():
+        denom = (torch.sum(x, 1).unsqueeze(-1))
+        # print(denom)
+    
+    nx = x / denom
+    print(nx)
     return
 
 
@@ -67,6 +79,6 @@ if __name__ == "__main__":
     torch_data = torch.stack(torch_data).clone().requires_grad_(requires_grad=True)
 
     func = dEMD()
-    minimize(func, torch_data, niters=500, lr=0.001, verbose=True)
+    minimize(func, torch_data, niters=4000, lr=0.0001, verbose=True)
 
    

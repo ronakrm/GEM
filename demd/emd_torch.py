@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+from scipy.stats import norm
+
 # Torch Implementation of algorithm listed in 
 # 
 #  @article{KLINE2019128,
@@ -15,6 +17,14 @@ import numpy as np
 #  url = "http://www.sciencedirect.com/science/article/pii/S0166218X19301441",
 #  author = "Jeffery Kline",
 #  keywords = "Submodularity, Monge Property, Linear Programming, Greedy Algorithm, Transportation Problem, Convex Polytopes"}
+
+def genNormalBins(n=10):
+    cbounds = [-2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0]
+
+    pbounds = []
+    for x in cbounds:
+        pbounds.append(norm.cdf(x))
+    return pbounds
 
 def OBJ(i):
     return max(i) - min(i)
@@ -61,22 +71,24 @@ class dEMD(nn.Module):
 
         return obj
 
-
-class FairEMD(nn.Module):
+class DEMDFairLoss(nn.Module):
     def __init__(self, cost=OBJ, discretization=10, verbose=False):
         super().__init__()
 
         self.cost = cost
         self.verbose = verbose
-
+        self.discretization = discretization
+        self.bins = genNormalBins(self.discretization)
+        self.fairMeasure = dEMD()
 
     def forward(output, group_labels):
 
         # first organize output into distributions.
-
-        # discretize to bins
-
-        gro
+        grouped_dists = []
+        for i in range(d):
+            idxs = group_ids==groups[i]
+            g_dist = getDist(ysig[idxs], params)
+            grouped_dists.append(g_dist)
 
         fairObj = self.fairMeasure(grouped_dists)
         return fairObj
@@ -113,6 +125,7 @@ if __name__ == '__main__':
 
     # torch version
     print('Torch Version:')
-    tmp = torch_greedy_primal_dual(torch.stack(torch_data), verbose=True)
+    torch_greedy_primal_dual = dEMD(verbose=True)
+    tmp = torch_greedy_primal_dual(torch.stack(torch_data))
     print(tmp)
 

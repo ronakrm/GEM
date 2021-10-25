@@ -48,7 +48,7 @@ def minimize(f, x_0, niters=100, lr=0.1):
     grad = approxGrad(f, x)
     gn = np.linalg.norm(grad)
 
-    print(f'Inital:\t\tObj:\t{funcval:.4f}\tGradNorm:\t{gn:.4f}')
+    # print(f'Inital:\t\tObj:\t{funcval:.4f}\tGradNorm:\t{gn:.4f}')
 
     for i in range(niters):
 
@@ -58,9 +58,10 @@ def minimize(f, x_0, niters=100, lr=0.1):
         grad = approxGrad(f, x)
         x = takeStep(x, grad, lr)
 
+        print(grad)
         gn = np.linalg.norm(grad)
                 
-        if i % 10 == 0:
+        if i % 1 == 0:
             print(f'Iter {i:2.0f}:\tObj:\t{funcval:.4f}\tGradNorm:\t{gn:.4f}')
 
     print('d1:', x[:5])
@@ -92,6 +93,6 @@ if __name__ == "__main__":
     data = np.array(data)
     data = vectorize(data, vecsize)
 
-    minimize(demd_func, data, niters=500, lr=0.001)
+    minimize(demd_func, data, niters=10, lr=0.0001)
 
    
