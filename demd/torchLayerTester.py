@@ -13,7 +13,7 @@ if __name__ == "__main__":
 	### Data
 
 	n = 100  # number of samples
-	d = 5 # number of groups
+	d = 2 # number of groups
 
 	group_labels = np.random.randint(0, d, size=(n,))
 
@@ -30,25 +30,29 @@ if __name__ == "__main__":
 
 	tacts = torch.Tensor(np.array(acts)).requires_grad_(requires_grad=True)
 
+	### Model/Layer
+	myl = DEMDLayer()
+
+
 	groups = np.unique(group_labels)
 	for i in range(d):
 		idxs = group_labels==groups[i]
-		print(tacts[idxs])
-	
-	### Model/Layer
-	myl = DEMDLayer()
+		print(myl.genHists(tacts[idxs],nbins=10))
+
 
 	opt = torch.optim.SGD([tacts], lr=0.1)
 
 	### Forward
-	print(myl(tacts, group_labels))
+	# print(myl(tacts, group_labels))
 
 	### Backward/Opt
-	n_epochs = 100
+	n_epochs = 1000
 	for t in range(n_epochs):
 
 		res = myl(tacts, group_labels)
-		print(res)
+
+		if t % 100 == 0:
+			print(res)
 
 		opt.zero_grad()
 		res.backward()
@@ -57,4 +61,6 @@ if __name__ == "__main__":
 	groups = np.unique(group_labels)
 	for i in range(d):
 		idxs = group_labels==groups[i]
-		print(tacts[idxs])
+		print(myl.genHists(tacts[idxs],nbins=10))
+
+	import pdb; pdb.set_trace()

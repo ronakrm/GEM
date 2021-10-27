@@ -57,11 +57,11 @@ class HistoBin(nn.Module):
 		for loc in self.locs:
 			dist = torch.abs(x - loc)
 			#print dist
-			ct = torch.relu(self.r - dist).sum(1) 
+			ct = torch.relu(self.r - dist).sum() 
 			counts.append(ct)
 		
-		stack = torch.stack(counts, 1)
-		out = stack.sum(dim=0)
+		# out = torch.stack(counts, 1)
+		out = torch.stack(counts)
 		
 		if self.norm:
 			summ = out.sum() + .000001
