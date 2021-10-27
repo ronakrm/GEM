@@ -74,3 +74,15 @@ train_dataset = MNIST(root='./data', train=True, download=True, transform=train_
 val_dataset = MNIST(root='./data', train=False, download=True, transform=train_transformation)
 
 
+
+    elif name == 'mnist':
+        from torchvision.datasets import MNIST
+
+        train_transformation = Compose([
+            ToTensor(),
+            Normalize((0.1307,), (0.3081,)),
+        ])
+
+        train_dataset = MNIST(root='./data', train=True, download=True, transform=train_transformation)
+        val_dataset = MNIST(root='./data', train=False, download=True, transform=train_transformation)
+
