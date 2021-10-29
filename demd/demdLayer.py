@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from emd_torch import dEMD
+from .emd_torch import dEMD
 
 def OBJ(i):
 	return max(i) - min(i)
