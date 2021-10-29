@@ -6,6 +6,7 @@ import torch
 import torchvision
 
 from torch_src.nn_utils import manual_seed, do_reg_epoch
+from torch_src.utils import genClassificationReport
 
 from torch_src.datasets import BinarySizeMNIST
 from torch_src.models.mnist import BinMNISTNET
@@ -18,7 +19,7 @@ def main(args):
 	outString = 'trained_models/'+args.dataset+"_"+args.model+'_epochs_' + str(args.epochs)+'_lr_' + str(args.learning_rate)+'_wd_' + str(args.weight_decay)+'_bs_' + str(args.batch_size)+'_optim_' + str(args.optim)
 	print(outString)
 	
-	model = BinMNISTNET(num_classes=1)
+	model = BinMNISTNET(num_classes=1).to(device)
 	# criterion = torch.nn.CrossEntropyLoss()
 	criterion = torch.nn.BCELoss()
 	reg = DEMDLayer()
@@ -37,6 +38,11 @@ def main(args):
 	valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch_size,
 											 shuffle=False, num_workers=1)
 
+	print('Generating report...')
+	# from demd import dEMD
+	dist = 0#dEMD()
+	genClassificationReport(model, train_loader, dist, device)
+
 	for epoch in range(args.epochs):
 		train_loss, train_accuracy = do_reg_epoch(model, train_loader, criterion, reg, epoch, args.epochs, optim=optim, device=device, outString=outString)
 
@@ -49,16 +55,18 @@ def main(args):
 		print('Saving model...')
 		torch.save(model.state_dict(), outString + '.pt')
 
+		
+
 if __name__ == '__main__':
 	arg_parser = argparse.ArgumentParser(description='Train a network')
 	arg_parser.add_argument('--train_seed', type=int, default=0)
 	arg_parser.add_argument('--dataset', type=str, default='binsizemnist')
 	arg_parser.add_argument('--model', type=str, default='BinMNISTNET')
-	arg_parser.add_argument('--batch_size', type=int, default=32)
+	arg_parser.add_argument('--batch_size', type=int, default=128)
 	arg_parser.add_argument('--optim', type=str, default='sgd', choices=['sgd', 'adam'])
-	arg_parser.add_argument('--epochs', type=int, default=20)
+	arg_parser.add_argument('--epochs', type=int, default=10)
 	arg_parser.add_argument('--n_classes', type=int, default=10)
-	arg_parser.add_argument('--learning_rate', type=float, default=0.01)
+	arg_parser.add_argument('--learning_rate', type=float, default=0.001)
 	arg_parser.add_argument('--momentum', type=float, default=0.9)
 	arg_parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay, or l2_regularization for SGD')
 	args = arg_parser.parse_args()

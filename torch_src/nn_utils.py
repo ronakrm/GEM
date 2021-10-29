@@ -50,19 +50,19 @@ def do_reg_epoch(model, dataloader, criterion, reg, epoch, nepochs, optim=None, 
 	for x, target in tqdm(dataloader, leave=False):
 
 		# import pdb; pdb.set_trace()
-	#for _, (x, y_true) in enumerate(dataloader):
-		(y_true, attr) = target[:, 1], target[:, 0]
-		x, y_true = x.to(device), y_true.to(device).float().unsqueeze(1)
-		y_pred = model(x)
-		loss = criterion(torch.sigmoid(y_pred), y_true)
+		(y_true, attr) = target[:, 1], target[:, 0].to(device)
+		x, y_true = x.to(device), y_true.to(device).float()#.unsqueeze(1)
+
+		act = model(x).squeeze()
+		y_sig = torch.sigmoid(act)
+		recon_loss = criterion(y_sig, y_true)
 		#loss = criterion(y_sigm, y_true.float())
 
 		# import pdb; pdb.set_trace()
 
-		reg = reg(y_pred, attr)
-		reg = 0
+		reg_loss = reg(act, attr)
 
-		total_loss = loss + 0.01*reg
+		loss = recon_loss + 0.001*reg_loss
 
 		# for training
 		if optim is not None:
@@ -72,8 +72,8 @@ def do_reg_epoch(model, dataloader, criterion, reg, epoch, nepochs, optim=None, 
 
 		nsamps += len(y_true)
 		total_loss += loss.item()
-		total_accuracy += (y_pred.max(1)[1] == y_true).float().mean().item()
 
+		total_accuracy += ((y_sig>0.5) == y_true).float().mean().item()
 
 	mean_loss = total_loss / len(dataloader)
 	mean_accuracy = total_accuracy / len(dataloader)
