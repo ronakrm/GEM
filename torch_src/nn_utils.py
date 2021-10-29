@@ -46,15 +46,20 @@ def do_reg_epoch(model, dataloader, criterion, reg, epoch, nepochs, optim=None, 
 	else:
 		model.eval()
 
+
 	for x, target in tqdm(dataloader, leave=False):
+
+		# import pdb; pdb.set_trace()
 	#for _, (x, y_true) in enumerate(dataloader):
-		(y_true, attr) = target[0], target[1]
-		x, y_true = x.to(device), y_true.to(device)
+		(y_true, attr) = target[:, 1], target[:, 0]
+		x, y_true = x.to(device), y_true.to(device).float().unsqueeze(1)
 		y_pred = model(x)
-		loss = criterion(y_pred, y_true)
+		loss = criterion(torch.sigmoid(y_pred), y_true)
 		#loss = criterion(y_sigm, y_true.float())
 
-		# reg = reg(y_sigm, attr)
+		# import pdb; pdb.set_trace()
+
+		reg = reg(y_pred, attr)
 		reg = 0
 
 		total_loss = loss + 0.01*reg
