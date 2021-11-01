@@ -15,7 +15,7 @@ if __name__ == "__main__":
 	n = 100  # number of samples
 	d = 2 # number of groups
 
-	group_labels = np.random.randint(0, d, size=(n,))
+	group_labels = torch.from_numpy(np.random.randint(0, d, size=(n,)))
 
 	acts = []
 	for i in range(n):

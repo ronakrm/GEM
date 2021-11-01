@@ -57,7 +57,7 @@ class dEMD(nn.Module):
 
             vals = [AA[i,j] for i,j in zip(range(d), idx)]
 
-            minval = min(vals).clone()
+            minval = min(vals)#.clone()
             ind = vals.index(minval)
             xx[tuple(idx)] = minval
             obj += (OBJ(idx)) * minval
@@ -69,6 +69,7 @@ class dEMD(nn.Module):
             if self.verbose:
                 print(ind, minval.item(), oldidx, obj.item(), '\t', vals)
 
+        # import pdb; pdb.set_trace()
         return obj
 
 class DEMDFairLoss(nn.Module):

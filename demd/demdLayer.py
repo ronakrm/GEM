@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import numpy as np
 
 from .emd_torch import dEMD
 
@@ -22,7 +21,7 @@ class DEMDLayer(nn.Module):
 		self.fairMeasure = dEMD()
 
 	def forward(self, acts, group_labels):
-		groups = np.unique(group_labels)
+		groups = torch.unique(group_labels)
 		d = len(groups)
 		# first organize output into distributions.
 		grouped_dists = []
@@ -46,7 +45,7 @@ class DEMDLayer(nn.Module):
 class HistoBin(nn.Module):
 	def __init__(self, nbins, norm=True):
 		super(HistoBin, self).__init__()
-		self.locs = np.arange(0,1,1.0/nbins)
+		self.locs = torch.arange(0,1,1.0/nbins)
 		self.r = 1.0/nbins
 		self.norm = norm
 	
