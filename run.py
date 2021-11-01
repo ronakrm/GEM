@@ -6,11 +6,10 @@ import torch
 import torchvision
 
 from torch_src.nn_utils import manual_seed, do_reg_epoch
-from torch_src.utils import genClassificationReport
 
 from torch_src.datasets import BinarySizeMNIST
 from torch_src.models.mnist import BinMNISTNET
-from demd import DEMDLayer
+from demd import DEMDLayer, dEMD
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -19,10 +18,11 @@ def main(args):
 	outString = 'trained_models/'+args.dataset+"_"+args.model+'_epochs_' + str(args.epochs)+'_lr_' + str(args.learning_rate)+'_wd_' + str(args.weight_decay)+'_bs_' + str(args.batch_size)+'_optim_' + str(args.optim)
 	print(outString)
 	
-	model = BinMNISTNET(num_classes=1).to(device)
+	model = BinMNISTNET(num_classes=1, hidden_size=10).to(device)
 	# criterion = torch.nn.CrossEntropyLoss()
 	criterion = torch.nn.BCELoss()
 	reg = DEMDLayer()
+	dist = dEMD()
 	print('Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
 
 	optim = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
@@ -38,16 +38,11 @@ def main(args):
 	valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch_size,
 											 shuffle=False, num_workers=1)
 
-	print('Generating report...')
-	# from demd import dEMD
-	dist = 0#dEMD()
-	genClassificationReport(model, train_loader, dist, device)
-
 	for epoch in range(args.epochs):
-		train_loss, train_accuracy = do_reg_epoch(model, train_loader, criterion, reg, epoch, args.epochs, optim=optim, device=device, outString=outString)
+		train_loss, train_accuracy = do_reg_epoch(model, train_loader, criterion, reg, dist, epoch, args.epochs, optim=optim, device=device, outString=outString)
 
 		with torch.no_grad():
-			valid_loss, valid_accuracy = do_reg_epoch(model, valid_loader, criterion, reg, epoch, args.epochs, optim=None, device=device, outString=outString)
+			valid_loss, valid_accuracy = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, optim=None, device=device, outString=outString)
 
 		tqdm.write(f'{args.model} EPOCH {epoch:03d}: train_loss={train_loss:.4f}, train_accuracy={train_accuracy:.4f} '
 				   f'valid_loss={valid_loss:.4f}, valid_accuracy={valid_accuracy:.4f}')
@@ -55,7 +50,9 @@ def main(args):
 		print('Saving model...')
 		torch.save(model.state_dict(), outString + '.pt')
 
-		
+		# print('Generating report...')
+		# genClassificationReport(model, train_loader, dist, device)
+	
 
 if __name__ == '__main__':
 	arg_parser = argparse.ArgumentParser(description='Train a network')

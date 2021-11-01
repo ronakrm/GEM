@@ -3,7 +3,9 @@ import numpy as np
 import random
 from tqdm import tqdm
 
-def do_epoch(model, dataloader, criterion, epoch, nepochs, optim=None, device='cpu', outString=''):
+from torch_src.utils import genClassificationReport
+
+def do_reg_epoch(model, dataloader, criterion, reg, dist, epoch, nepochs, optim=None, device='cpu', outString=''):
 	# saves last two epochs gradients for computing finite difference Hessian
 	total_loss = 0
 	total_accuracy = 0
@@ -13,43 +15,12 @@ def do_epoch(model, dataloader, criterion, epoch, nepochs, optim=None, device='c
 	else:
 		model.eval()
 
-	for x, y_true in tqdm(dataloader, leave=False):
-	#for _, (x, y_true) in enumerate(dataloader):
-		x, y_true = x.to(device), y_true.to(device)
-		y_pred = model(x)
-		loss = criterion(y_pred, y_true)
-		#loss = criterion(y_pred, y_true.float())
-
-		# for training
-		if optim is not None:
-			optim.zero_grad()
-			loss.backward()
-			optim.step()
-
-		nsamps += len(y_true)
-		total_loss += loss.item()
-		total_accuracy += (y_pred.max(1)[1] == y_true).float().mean().item()
-
-	mean_loss = total_loss / len(dataloader)
-	mean_accuracy = total_accuracy / len(dataloader)
-
-	return mean_loss, mean_accuracy
-
-
-def do_reg_epoch(model, dataloader, criterion, reg, epoch, nepochs, optim=None, device='cpu', outString=''):
-	# saves last two epochs gradients for computing finite difference Hessian
-	total_loss = 0
-	total_accuracy = 0
-	nsamps = 0
-	if optim is not None:
-		model.train()
-	else:
-		model.eval()
-
+	acts = []
+	targets = []
+	attrs = []
 
 	for x, target in tqdm(dataloader, leave=False):
 
-		# import pdb; pdb.set_trace()
 		(y_true, attr) = target[:, 1], target[:, 0].to(device)
 		x, y_true = x.to(device), y_true.to(device).float()#.unsqueeze(1)
 
@@ -58,11 +29,9 @@ def do_reg_epoch(model, dataloader, criterion, reg, epoch, nepochs, optim=None, 
 		recon_loss = criterion(y_sig, y_true)
 		#loss = criterion(y_sigm, y_true.float())
 
-		# import pdb; pdb.set_trace()
-
 		reg_loss = reg(act, attr)
 
-		loss = recon_loss + 0.001*reg_loss
+		loss = recon_loss + reg_loss
 
 		# for training
 		if optim is not None:
@@ -75,8 +44,18 @@ def do_reg_epoch(model, dataloader, criterion, reg, epoch, nepochs, optim=None, 
 
 		total_accuracy += ((y_sig>0.5) == y_true).float().mean().item()
 
+		acts.extend(act.detach().cpu())
+		targets.extend(y_true.detach().cpu())
+		attrs.extend(attr.detach().cpu())
+
 	mean_loss = total_loss / len(dataloader)
 	mean_accuracy = total_accuracy / len(dataloader)
+
+	tacts = torch.stack(acts)
+	ttargets = torch.stack(targets)
+	tattrs = torch.stack(attrs)
+
+	genClassificationReport(tacts, ttargets, tattrs, dist=dist)
 
 	return mean_loss, mean_accuracy
 
