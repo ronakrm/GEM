@@ -1,0 +1,119 @@
+# grad_test.py
+import argparse
+
+import pandas as pd
+import time
+import os
+
+import numpy as np
+import ot
+
+from scipy.optimize import approx_fprime
+
+from demd.emd import greedy_primal_dual
+from demd.emd_vanilla import demd_func, approxGrad
+from demd.demdLayer import DEMDLayer
+from demd.emd_torch import dEMD
+
+from utils import manual_seed
+
+def genNumpyData(n, d):
+
+	data = []
+
+	# Gaussianlike distributions
+	data = []
+	for i in range(d):
+		m = 100*np.random.rand(1)
+		a = ot.datasets.make_1D_gauss(n, m=m, s=5)
+		data.append(a)
+
+	return data
+
+def test(n, d, seed, gradType, outfile):
+
+	tmp = {}
+	tmp['n'] = [n]
+	tmp['d'] = [d]
+	tmp['seed'] = [seed]
+	tmp['gradType'] = [gradType]
+
+	manual_seed(seed)
+	np_data = genNumpyData(n, d)
+
+
+	if gradType == 'scipy' or gradType == 'npdual':
+		np_data = np.array(np_data)
+		d,n = np_data.shape
+		x = np.reshape(np_data, d*n)
+
+	elif gradType == 'torchdual' or gradType == 'autograd':
+		# torch stuff
+		pass
+
+	else:
+		print(f'Unknown GradType: {gradType}')
+		exit(1)
+
+	t1 = time.time()
+
+	if gradType == 'scipy':
+		_ = demd_func(x, d, n, return_dual_vars=False)
+
+		t2 = time.time()
+
+		grad = approxGrad(demd_func, x, d, n)
+
+	elif gradType == 'npdual':
+		val, duals = demd_func(x, d, n, return_dual_vars=True)
+
+		t2 = time.time() # gradient already computed from dual
+
+	elif gradType == 'torchdual':
+		pass
+
+	elif gradType == 'autograd':
+		pass
+
+	else:
+		print(f'Unknown GradType: {gradType}')
+		exit(1)
+
+
+	t3 = time.time()
+	fp_time = t2 - t1
+	bk_time = t3 - t2
+	total_time = t3 - t1
+
+	tmp['forward_time'] = [fp_time]
+	tmp['backward_time'] = [bk_time]
+	tmp['total_time'] = [total_time]
+
+	df = pd.DataFrame(tmp)
+	if os.path.isfile(outfile):
+		df.to_csv(outfile, mode='a', header=False, index=False)
+	else:
+		df.to_csv(outfile, mode='a', header=True, index=False)
+
+	return
+
+
+def main(args):
+	test(args.n, args.d, args.random_seed, args.gradType, args.outfile)
+
+
+if __name__ == "__main__":
+
+	arg_parser = argparse.ArgumentParser(description='Speed Test')
+
+	arg_parser.add_argument('--random_seed', type=int, default=0)
+	arg_parser.add_argument('--n', type=int, default=5)
+	arg_parser.add_argument('--d', type=int, default=3)
+
+	arg_parser.add_argument('--gradType', type=str, default='scipy',
+						choices=['scipy', 'npdual', 'torchdual', 'autograd'])
+
+	arg_parser.add_argument('--outfile', type=str, default='results/speed_test_results.csv')
+
+	args = arg_parser.parse_args()
+	main(args)
