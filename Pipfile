@@ -9,6 +9,7 @@ pot = "*"
 cvxopt = "*"
 tqdm = "*"
 torchvision = "*"
+pandas = "*"
 
 [dev-packages]
 
