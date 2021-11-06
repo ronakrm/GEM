@@ -5,7 +5,8 @@ from tqdm import tqdm
 import torch
 import torchvision
 
-from torch_src.nn_utils import manual_seed, do_reg_epoch
+from torch_src.nn_utils import do_reg_epoch
+from utils import manual_seed
 
 from torch_src.datasets import BinarySizeMNIST
 from torch_src.models.mnist import BinMNISTNET
