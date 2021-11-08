@@ -10,10 +10,12 @@ import ot
 
 from scipy.optimize import approx_fprime
 
+import torch
+
 from demd.emd import greedy_primal_dual
 from demd.emd_vanilla import demd_func, approxGrad
-from demd.demdLayer import DEMDLayer
-from demd.emd_torch import dEMD
+# from demd.demdLayer import DEMDLayer
+from demd.emd_torch import dEMD, dEMDLossFunc
 
 from utils import manual_seed
 
@@ -49,7 +51,7 @@ def test(n, d, seed, gradType, outfile):
 
 	elif gradType == 'torchdual' or gradType == 'autograd':
 		# torch stuff
-		pass
+		x = torch.from_numpy(np.array(np_data)).clone().requires_grad_(requires_grad=True)
 
 	else:
 		print(f'Unknown GradType: {gradType}')
@@ -65,20 +67,32 @@ def test(n, d, seed, gradType, outfile):
 		grad = approxGrad(demd_func, x, d, n)
 
 	elif gradType == 'npdual':
-		val, duals = demd_func(x, d, n, return_dual_vars=True)
+		val, grad = demd_func(x, d, n, return_dual_vars=True)
 
 		t2 = time.time() # gradient already computed from dual
 
 	elif gradType == 'torchdual':
-		pass
+		funcval = dEMDLossFunc(x)
+		t2 = time.time()
+
+		funcval.backward()
+
+		grad = x.grad
 
 	elif gradType == 'autograd':
-		pass
+		func = dEMD(computeDual=True)
+		funcval = func(x)
+		t2 = time.time()
+
+		funcval.backward()
+
+		grad = x.grad
 
 	else:
 		print(f'Unknown GradType: {gradType}')
 		exit(1)
 
+	# print(grad)
 
 	t3 = time.time()
 	fp_time = t2 - t1
