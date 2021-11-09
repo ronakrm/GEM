@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import time
 
-from emd_torch import dEMD
+from emd_torch import dEMD, dEMDLossFunc
 
 def minimize(func, x_0, niters=100, lr=0.1, verbose=False):
 
@@ -69,16 +69,12 @@ if __name__ == "__main__":
     d = len(data)
     print(data)
 
-    # data = np.array(data)
-    # data = vectorize(data, vecsize)
+    np_data = np.array(data)
 
-    ta1 = torch.Tensor(a1)
-    ta2 = torch.Tensor(a2)
-    ta3 = torch.Tensor(a3)
-    torch_data = [ta1, ta2, ta3]
-    torch_data = torch.stack(torch_data).clone().requires_grad_(requires_grad=True)
+    torch_data = torch.from_numpy(np.array(np_data)).clone().requires_grad_(requires_grad=True)
 
-    func = dEMD()
-    minimize(func, torch_data, niters=4000, lr=0.0001, verbose=True)
+    # func = dEMD()
+    func = dEMDLossFunc
+    minimize(func, torch_data, niters=1000, lr=0.001, verbose=True)
 
    

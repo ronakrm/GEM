@@ -31,7 +31,7 @@ def OBJ(i):
 	# return 0 if max(i) == min(i) else 1
 
 class dEMD(nn.Module):
-	def __init__(self, cost=OBJ, computeDual=True, verbose=False):
+	def __init__(self, cost=OBJ, computeDual=False, verbose=False):
 		super().__init__()
 
 		self.cost = cost
@@ -58,8 +58,7 @@ class dEMD(nn.Module):
 		while all([i < n for i in idx]):
 
 			vals = [AA[i,j] for i,j in zip(range(d), idx)]
-
-			minval = min(vals)#.clone()
+			minval = min(vals).clone()
 			ind = vals.index(minval)
 			xx[tuple(idx)] = minval
 			obj += (OBJ(idx)) * minval
@@ -77,10 +76,11 @@ class dEMD(nn.Module):
 				try: dual[_][i:] = dual[_][i]
 				except: pass
 
-			dualobj =  sum([_.dot(_d) for _, _d in zip(AA, dual)])
+			dualobj =  sum([_.dot(_d) for _, _d in zip(x, dual)])
 
-		# import pdb; pdb.set_trace()
-		return obj, dualobj
+			return obj, dualobj
+		else:
+			return obj
 
 
 
@@ -110,7 +110,7 @@ class dEMDLoss(torch.autograd.Function):
 
 			vals = [AA[i,j] for i,j in zip(range(d), idx)]
 
-			minval = min(vals)#.clone()
+			minval = min(vals).clone()
 			ind = vals.index(minval)
 			xx[tuple(idx)] = minval
 			obj += (OBJ(idx)) * minval
@@ -124,11 +124,11 @@ class dEMDLoss(torch.autograd.Function):
 			try: dual[_][i:] = dual[_][i]
 			except: pass
 
-		dualobj =  sum([_.dot(_d) for _, _d in zip(AA, dual)])
+		dualobj =  sum([_.dot(_d) for _, _d in zip(x, dual)])
 
 		ctx.save_for_backward(dual)
 
-		return obj, dualobj
+		return obj
 
 	@staticmethod
 	def backward(ctx, grad_output):

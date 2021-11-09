@@ -13,7 +13,7 @@ from scipy.optimize import approx_fprime
 import torch
 
 from demd.emd import greedy_primal_dual
-from demd.emd_vanilla import demd_func, approxGrad
+from demd.emd_vanilla import demd_func, approxGrad, matricize
 # from demd.demdLayer import DEMDLayer
 from demd.emd_torch import dEMD, dEMDLossFunc
 
@@ -41,17 +41,21 @@ def test(n, d, seed, gradType, outfile):
 	tmp['gradType'] = [gradType]
 
 	manual_seed(seed)
-	np_data = genNumpyData(n, d)
+
+	if args.dataType == 'N52D':
+		np_data = np.array([[0.1, 0.1, 0.2, 0.5, 0.1], 
+							[0.2, 0.1, 0.3, 0.1, 0.3]])
+	else:
+		np_data = np.array(genNumpyData(n, d))
 
 
 	if gradType == 'scipy' or gradType == 'npdual':
-		np_data = np.array(np_data)
 		d,n = np_data.shape
 		x = np.reshape(np_data, d*n)
 
 	elif gradType == 'torchdual' or gradType == 'autograd':
 		# torch stuff
-		x = torch.from_numpy(np.array(np_data)).clone().requires_grad_(requires_grad=True)
+		x = torch.from_numpy(np_data).clone().requires_grad_(requires_grad=True)
 
 	else:
 		print(f'Unknown GradType: {gradType}')
@@ -60,11 +64,11 @@ def test(n, d, seed, gradType, outfile):
 	t1 = time.time()
 
 	if gradType == 'scipy':
-		_ = demd_func(x, d, n, return_dual_vars=False)
+		funcval, _, dualobj = demd_func(x, d, n, return_dual_vars=True)
 
 		t2 = time.time()
 
-		grad = approxGrad(demd_func, x, d, n)
+		grad = matricize(approxGrad(demd_func, x, d, n), d, n)
 
 	elif gradType == 'npdual':
 		funcval, grad, dualobj = demd_func(x, d, n, return_dual_vars=True)
@@ -72,7 +76,7 @@ def test(n, d, seed, gradType, outfile):
 		t2 = time.time() # gradient already computed from dual
 
 	elif gradType == 'torchdual':
-		funcval, dualobj = dEMDLossFunc(x)
+		funcval = dEMDLossFunc(x)
 		t2 = time.time()
 
 		funcval.backward()
@@ -130,6 +134,9 @@ if __name__ == "__main__":
 						choices=['scipy', 'npdual', 'torchdual', 'autograd'])
 
 	arg_parser.add_argument('--outfile', type=str, default='results/speed_test_results.csv')
+
+	arg_parser.add_argument('--dataType', type=str, default='gausspseudo',
+						choices=['gausspseudo', 'N52D'])
 
 	args = arg_parser.parse_args()
 	main(args)
