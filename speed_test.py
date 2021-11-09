@@ -80,7 +80,7 @@ def test(n, d, seed, gradType, outfile):
 		grad = x.grad
 
 	elif gradType == 'autograd':
-		func = dEMD(computeDual=True)
+		func = dEMD()
 		funcval = func(x)
 		t2 = time.time()
 
