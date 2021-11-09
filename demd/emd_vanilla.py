@@ -25,7 +25,7 @@ def demd_func(x, d, n, return_dual_vars=False):
 	log = greedy_primal_dual(x)
 
 	if return_dual_vars:
-		return log['primal objective'], log['dual']
+		return log['primal objective'], log['dual'], log['dual objective']
 	else:
 		return log['primal objective']
 	

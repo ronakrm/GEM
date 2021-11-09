@@ -67,12 +67,12 @@ def test(n, d, seed, gradType, outfile):
 		grad = approxGrad(demd_func, x, d, n)
 
 	elif gradType == 'npdual':
-		val, grad = demd_func(x, d, n, return_dual_vars=True)
+		funcval, grad, dualobj = demd_func(x, d, n, return_dual_vars=True)
 
 		t2 = time.time() # gradient already computed from dual
 
 	elif gradType == 'torchdual':
-		funcval = dEMDLossFunc(x)
+		funcval, dualobj = dEMDLossFunc(x)
 		t2 = time.time()
 
 		funcval.backward()
@@ -81,7 +81,7 @@ def test(n, d, seed, gradType, outfile):
 
 	elif gradType == 'autograd':
 		func = dEMD()
-		funcval = func(x)
+		funcval, dualobj = func(x)
 		t2 = time.time()
 
 		funcval.backward()
@@ -92,7 +92,9 @@ def test(n, d, seed, gradType, outfile):
 		print(f'Unknown GradType: {gradType}')
 		exit(1)
 
-	# print(grad)
+	print(grad)
+	print(funcval)
+	print(dualobj)
 
 	t3 = time.time()
 	fp_time = t2 - t1
