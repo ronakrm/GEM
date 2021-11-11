@@ -81,10 +81,12 @@ def test(n, d, seed, gradType, outfile):
 
 		funcval.backward()
 
+		dualobj = sum([_.dot(_d) for _, _d in zip(x, x.grad)])
+
 		grad = x.grad
 
 	elif gradType == 'autograd':
-		func = dEMD()
+		func = dEMD(computeDual=True)
 		funcval, dualobj = func(x)
 		t2 = time.time()
 
