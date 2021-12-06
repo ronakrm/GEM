@@ -120,11 +120,12 @@ class dEMDLoss(torch.autograd.Function):
 			if idx[ind]<n:
 				dual[ind,idx[ind]] += OBJ(idx) - OBJ(oldidx) + dual[ind,idx[ind]-1]
 
+		# TODO: maybe unncessary/better way?
 		for _, i in enumerate(idx):
 			try: dual[_][i:] = dual[_][i]
 			except: pass
 
-		dualobj =  sum([_.dot(_d) for _, _d in zip(x, dual)])
+		# dualobj =  sum([_.dot(_d) for _, _d in zip(x, dual)])
 
 		ctx.save_for_backward(dual)
 

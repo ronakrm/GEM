@@ -16,7 +16,7 @@ def listify(x):
 	return tmp
 
 def approxGrad(f, x, d, n):
-	grad = np.round(approx_fprime(x, f, 1e-8, d, n))
+	grad = approx_fprime(x, f, 1e-8, d, n)
 	return grad
 
 def demd_func(x, d, n, return_dual_vars=False):
