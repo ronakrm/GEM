@@ -1,0 +1,33 @@
+todos.txt
+
+data proc/load
+	check current impl
+
+multiclass/regression
+	multi class
+		add loop for input size dim of n classes
+		sum them for final loss
+	regress
+		create separate demd regress
+		make class extension of regress
+
+output measure and formatting
+	measures
+		implement DP
+		implement EO
+		implement bary wass
+		make them multiclass
+
+	stats
+		save out
+			class rate for groups at each epoch
+			lambda reg
+			total acc
+			time per epoch
+
+	script
+		no reg
+		dp
+		eo
+		demd
+		wass bary
