@@ -1,11 +1,7 @@
 import torch
 import torch.nn as nn
-
-from .emd_torch import dEMD
-
-def OBJ(i):
-	return max(i) - min(i)
-	# return 0 if max(i) == min(i) else 1
+from .demdFunc import dEMD, OBJ
+from .demdLoss import dEMDLossFunc
 
 class DEMDLayer(nn.Module):
 	def __init__(self, cost=OBJ, discretization=10, verbose=False):
@@ -18,7 +14,7 @@ class DEMDLayer(nn.Module):
 		self.cdf = nn.Sigmoid()
 		self.Hist = HistoBin(nbins=discretization)
 
-		self.fairMeasure = dEMD()
+		self.fairMeasure = dEMDLossFunc
 
 	def forward(self, acts, group_labels):
 		groups = torch.unique(group_labels)
@@ -31,13 +27,14 @@ class DEMDLayer(nn.Module):
 			grouped_dists.append(g_dist)
 
 		torch_dists = torch.stack(grouped_dists).requires_grad_(requires_grad=True)
+
 		fairObj = self.fairMeasure(torch_dists)
 		return fairObj
 
 
 	def genHists(self, samples, nbins=10):
 		# convert to [0,1] via sigmoid
-		cdfs = self.cdf(samples)
+		cdfs = self.cdf(samples) - 0.000001 # for boundary case at end
 		dist = self.Hist(cdfs)
 		# dist = torch.histc(cdfs, bins=nbins, min=0, max=1)
 		return dist/dist.sum()

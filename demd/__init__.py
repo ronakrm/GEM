@@ -1,2 +1,3 @@
-from .emd_torch import *
+from .demdFunc import *
+from .demdLoss import *
 from .demdLayer import *
