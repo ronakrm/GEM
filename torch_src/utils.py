@@ -60,6 +60,6 @@ def genClassificationReport(acts, targets, attrs, dist=None):
 		print(f'Global Hist: {full_hist}')
 
 	if dist is not None:
-		stacked = torch.stack(list(hists.values())).requires_grad_(requires_grad=True)
+		stacked = torch.stack(list(hists.values()))
 		demd = dist(stacked).item()
 		print(f'Full dEMD Distance: {demd}')
