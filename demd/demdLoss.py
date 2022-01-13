@@ -47,8 +47,7 @@ class dEMDLoss(torch.autograd.Function):
 	@staticmethod
 	def backward(ctx, grad_output):
 		dual, = ctx.saved_tensors
-		grad_input = dual.clone()
-		return grad_input
+		return grad_output*dual
 
 
 dEMDLossFunc = dEMDLoss.apply
