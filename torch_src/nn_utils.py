@@ -5,33 +5,35 @@ from tqdm import tqdm
 
 from torch_src.utils import genClassificationReport
 
-def do_reg_epoch(model, dataloader, criterion, reg, dist, epoch, nepochs, optim=None, device='cpu', outString=''):
+def do_reg_epoch(model, dataloader, criterion, reg, dist, epoch, nepochs, lambda_reg, optim=None, device='cpu', outString=''):
 	# saves last two epochs gradients for computing finite difference Hessian
 	total_loss = 0
 	total_accuracy = 0
 	nsamps = 0
 	if optim is not None:
 		model.train()
+		reg.train()
 	else:
 		model.eval()
+		reg.eval()
 
 	acts = []
 	targets = []
 	attrs = []
 
-	for x, target in tqdm(dataloader, leave=False):
+	for x, target in tqdm(dataloader):
 
-		(y_true, attr) = target[:, 1], target[:, 0].to(device)
+		(y_true, attr) = target[:, 0], target[:, 1].to(device)
 		x, y_true = x.to(device), y_true.to(device).float()#.unsqueeze(1)
 
 		act = model(x).squeeze()
 		y_sig = torch.sigmoid(act)
 		recon_loss = criterion(y_sig, y_true)
-		#loss = criterion(y_sigm, y_true.float())
 
 		reg_loss = reg(act, attr)
+		# reg_loss = reg(X=None, y=y_true, out=act, sensitive=attr)
 
-		loss = recon_loss + reg_loss
+		loss = recon_loss + lambda_reg*reg_loss
 
 		# for training
 		if optim is not None:
@@ -55,7 +57,9 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist, epoch, nepochs, optim=
 	ttargets = torch.stack(targets)
 	tattrs = torch.stack(attrs)
 
+	valid_dist = reg(tacts, tattrs)
+
 	genClassificationReport(tacts, ttargets, tattrs, dist=dist)
 
-	return mean_loss, mean_accuracy
+	return mean_loss, mean_accuracy, valid_dist
 
