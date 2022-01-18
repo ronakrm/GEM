@@ -7,12 +7,12 @@ import os
 import torch
 import torchvision
 
-from torch_src.nn_utils import do_reg_epoch
+from src.nn_utils import do_reg_epoch
 
-from torch_src.dataset_helper import getDatasets
+from src.dataset_helper import getDatasets
 from utils import manual_seed
 
-from torch_src.measures.fairtorch_constraints import DemographicParityLoss
+from src.measures.fairtorch_constraints import DemographicParityLoss
 from demd import DEMDLayer, dEMD
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -25,7 +25,7 @@ def main(args):
 	outString = 'trained_models/'+args.dataset+"_"+args.model+'_epochs_' + str(args.epochs)+'_lr_' + str(args.learning_rate)+'_wd_' + str(args.weight_decay)+'_bs_' + str(args.batch_size)+'_optim_' + str(args.optim)
 	print(outString)
 	
-	exec("from torch_src.models import %s" % args.model)
+	exec("from src.models import %s" % args.model)
 	model = eval(args.model)().to(device)
 
 	criterion = torch.nn.BCELoss()

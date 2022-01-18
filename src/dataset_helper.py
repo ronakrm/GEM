@@ -10,7 +10,7 @@ def getDatasets(name='adult',
 					download=True):
 
 	if name == 'adult':
-		from torch_src.datasets import Adult
+		from src.datasets import Adult
 		train_dataset = Adult(attr_col=attr_col, train=True)
 		valid_dataset = Adult(attr_col=attr_col, train=False)
 
