@@ -99,6 +99,7 @@ class BinarySizeMNIST(MNIST):
             img = transforms.ToTensor()(img)
 
         # (class, big_or_small, index)
-        target = torch.tensor([int(target), int(attr), index])
+        # switched: predict size (first) attr, target is attr
+        target = torch.tensor([int(attr), int(target), index])
 
         return img, target
