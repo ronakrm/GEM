@@ -1,3 +1,6 @@
 __pycache__/
 trained_models/*
 data/*
+figs/*
+*.csv
+*.pdf

@@ -1,7 +1,7 @@
 import numpy as np
 import torch.utils.data
 # from torch.utils.data import Subset
-# from torchvision.transforms import Compose, ToTensor, Normalize, 
+from torchvision.transforms import Compose, ToTensor, Normalize
 # from torchvision.transforms import Resize, RandomCrop, RandomHorizontalFlip
 
 def getDatasets(name='adult',
@@ -23,19 +23,19 @@ def getDatasets(name='adult',
 		valid_dataset = ACSIncome(train=False)
 
 
-	# elif name == 'binary-mnist':
-	# 	from torchvision.datasets import MNIST
+	elif name == 'binary-mnist':
+		from src.datasets import BinarySizeMNIST
 
-	# 	train_transformation = Compose([
-	# 		ToTensor(),
-	# 		Normalize((0.1307,), (0.3081,)),
-	# 	])
+		train_transformation = Compose([
+			ToTensor(),
+			Normalize((0.1307,), (0.3081,)),
+		])
 
-	# 	train_dataset = MNIST(root='./data', train=True, download=True, transform=train_transformation)
-	# 	train_dataset = LabelSubsetWrapper(train_dataset, which_labels=(0,1))
+		train_dataset = BinarySizeMNIST(root='./data', train=True, download=True, transform=train_transformation)
+		# train_dataset = LabelSubsetWrapper(train_dataset, which_labels=(0,1))
 		
-	# 	val_dataset = MNIST(root='./data', train=False, download=True, transform=train_transformation)
-	# 	val_dataset = LabelSubsetWrapper(val_dataset, which_labels=(0,1))
+		valid_dataset = BinarySizeMNIST(root='./data', train=False, download=True, transform=train_transformation)
+		# val_dataset = LabelSubsetWrapper(val_dataset, which_labels=(0,1))
 
 	# elif name == 'mnist':
 	# 	from torchvision.datasets import MNIST

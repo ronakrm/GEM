@@ -28,10 +28,11 @@ def main(args):
 	print(outString)
 	
 	exec("from src.models import %s" % args.model)
-	model = eval(args.model)().to(device)
+	model = eval(args.model)(num_classes=args.n_classes).to(device)
 
-	criterion = torch.nn.BCELoss()
-	reg = DEMDLayer(discretization=args.nbins)
+	criterion = torch.nn.BCELoss().to(device)
+	reg = DEMDLayer(discretization=args.nbins).to(device)
+
 	dist = dEMD()
 	# reg = DemographicParityLoss()
 	print('Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
@@ -58,7 +59,6 @@ def main(args):
 		toc = time.time()
 
 		tottraintime += toc
-
 		with torch.no_grad():
 			valid_loss, valid_accuracy, valid_dist = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, optim=None, device=device, outString=outString)
 
@@ -96,7 +96,7 @@ if __name__ == '__main__':
 	arg_parser.add_argument('--momentum', type=float, default=0.9)
 	arg_parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay, or l2_regularization for SGD')
 	arg_parser.add_argument('--lambda_reg', type=float, default=1e-5, help='dEMD reg weight')
-	arg_parser.add_argument('--nbins', type=float, default=2, help='dEMD bin level')
+	arg_parser.add_argument('--nbins', type=int, default=2, help='number of bins for histogram')
 	arg_parser.add_argument('--outfile', type=str, default='res/tmp_results.csv', help='results file to print to')
 	args = arg_parser.parse_args()
 	# arg_parser.print_help()
