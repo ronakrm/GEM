@@ -35,7 +35,7 @@ def getHist(acts, nbins=10):
 	dist = torch.histc(cdfs, bins=nbins, min=0, max=1)
 	return dist/sum(dist)
 
-def genClassificationReport(acts, targets, attrs, dist=None):
+def genClassificationReport(acts, targets, attrs, dist=None, nbins=10):
 
 	groups = torch.unique(attrs).numpy()
 
@@ -46,10 +46,10 @@ def genClassificationReport(acts, targets, attrs, dist=None):
 		gacts = acts[attrs==group]
 		gtargets = targets[attrs==group]
 		accs[group] = getAcc(gacts, gtargets).detach().cpu().numpy()
-		hists[group] = getHist(gacts)
+		hists[group] = getHist(gacts, nbins=nbins)
 
 	total_acc = getAcc(acts, targets)
-	full_hist = getHist(acts).detach().cpu().numpy()
+	full_hist = getHist(acts, nbins=nbins).detach().cpu().numpy()
 
 	print('*'*5, 'Classification Report', '*'*5)
 	with np.printoptions(precision=3, suppress=True):

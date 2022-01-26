@@ -5,7 +5,9 @@ from tqdm import tqdm
 
 from src.utils import genClassificationReport
 
-def do_reg_epoch(model, dataloader, criterion, reg, dist, epoch, nepochs, lambda_reg, optim=None, device='cpu', outString=''):
+def do_reg_epoch(model, dataloader, criterion, reg, dist, 
+					epoch, nepochs, lambda_reg, nbins,
+					optim=None, device='cpu', outString=''):
 	# saves last two epochs gradients for computing finite difference Hessian
 	total_loss = 0
 	total_accuracy = 0
@@ -59,7 +61,7 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist, epoch, nepochs, lambda
 
 	valid_dist = reg(tacts, tattrs)
 
-	genClassificationReport(tacts, ttargets, tattrs, dist=dist)
+	genClassificationReport(tacts, ttargets, tattrs, dist=dist, nbins=nbins)
 
 	return mean_loss, mean_accuracy, valid_dist
 

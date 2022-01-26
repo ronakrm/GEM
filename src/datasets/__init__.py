@@ -2,3 +2,4 @@
 #from .fair_mnist import *
 from .binsizemnist import *
 from .uci import *
+from .acs import *

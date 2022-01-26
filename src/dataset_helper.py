@@ -13,6 +13,15 @@ def getDatasets(name='adult',
 		from src.datasets import Adult
 		train_dataset = Adult(attr_col=attr_col, train=True)
 		valid_dataset = Adult(attr_col=attr_col, train=False)
+	elif name == 'acs-employ':
+		from src.datasets import ACSEmployment
+		train_dataset = ACSEmployment(train=True)
+		valid_dataset = ACSEmployment(train=False)
+	elif name == 'acs-income':
+		from src.datasets import ACSIncome
+		train_dataset = ACSIncome(train=True)
+		valid_dataset = ACSIncome(train=False)
+
 
 	# elif name == 'binary-mnist':
 	# 	from torchvision.datasets import MNIST

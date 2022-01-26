@@ -1,5 +1,16 @@
 import torch.nn
 
+def fpr(y_pred, y_true):
+
+def tpr(y_pred, y_true):
+
+def tpr(y_pred, y_true):
+
+
+def DP(y_pred, y_true, attr):
+
+	return dp
+
 
 class Measure(torch.nn.Module):
 
