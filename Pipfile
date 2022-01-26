@@ -10,6 +10,9 @@ cvxopt = "*"
 tqdm = "*"
 torchvision = "*"
 pandas = "*"
+h5py = "*"
+folktables = "*"
+matplotlib = "*"
 
 [dev-packages]
 
