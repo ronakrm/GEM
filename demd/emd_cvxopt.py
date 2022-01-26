@@ -4,7 +4,7 @@ import cvxopt
 import cvxopt.solvers as cvx_solvers
 import sys
 import random
-from emd import OBJ, greedy_primal_dual
+from .emd import OBJ, greedy_primal_dual
 
 cvxopt.solvers = {'feastol': 1e-7, 'reltol': 1e-6, 'abstol': 1e-7, 'refinement': 2}
 
