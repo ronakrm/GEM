@@ -22,6 +22,21 @@ def getOutputs(model, dataloader, device):
 
 	return torch.stack(acts), torch.stack(targets), torch.stack(attrs)
 
+def getDP(acts, labels):
+	y_sigs = torch.sigmoid(acts)
+
+	if len(y_sigs.shape) == 1:
+		return ((y_sigs>0.5) == True).float().mean()
+
+def getEO(acts, labels):
+	y_sigs = torch.sigmoid(acts)
+
+	if len(y_sigs.shape) == 1:
+		a = ((y_sigs>0.5) == True).bool()
+		b = a & (labels==1).bool()
+		return (b).float().mean()
+
+
 def getAcc(acts, labels):
 	y_sigs = torch.sigmoid(acts)
 
@@ -41,11 +56,15 @@ def genClassificationReport(acts, targets, attrs, dist=None, nbins=10):
 
 	hists = {}
 	accs = {}
+	dp = {}
+	eo = {}
 
 	for group in groups:
 		gacts = acts[attrs==group]
 		gtargets = targets[attrs==group]
 		accs[group] = getAcc(gacts, gtargets).detach().cpu().numpy()
+		dp[group] = getDP(gacts, gtargets).detach().cpu().numpy()
+		eo[group] = getEO(gacts, gtargets).detach().cpu().numpy()
 		hists[group] = getHist(gacts, nbins=nbins)
 
 	total_acc = getAcc(acts, targets)
@@ -53,9 +72,9 @@ def genClassificationReport(acts, targets, attrs, dist=None, nbins=10):
 
 	print('*'*5, 'Classification Report', '*'*5)
 	with np.printoptions(precision=3, suppress=True):
-		print('Class\t\tAcc\t\tHist')
+		print('Class\t\tAcc\t\tDP\t\tEO\t\tHist')
 		for group in groups:
-			print(f'{group}\t\t{accs[group]}\t\t{hists[group].detach().cpu().numpy()}')
+			print(f'{group}\t\t{accs[group]:.4f}\t\t{dp[group]:.4f}\t\t{eo[group]:.4f}\t\t{hists[group].detach().cpu().numpy()}')
 		print(f'Total Acc: {total_acc}')
 		print(f'Global Hist: {full_hist}')
 
@@ -63,3 +82,5 @@ def genClassificationReport(acts, targets, attrs, dist=None, nbins=10):
 		stacked = torch.stack(list(hists.values()))
 		demd = dist(stacked).item()
 		print(f'Full dEMD Distance: {demd}')
+
+	return accs, dp, eo, demd

@@ -26,7 +26,7 @@ def main(args):
 	print(outString)
 	
 	exec("from src.models import %s" % args.model)
-	model = eval(args.model)(num_classes=args.n_classes).to(device)
+	model = eval(args.model)(input_size=args.input_size, num_classes=args.n_classes).to(device)
 
 	criterion = torch.nn.BCELoss().to(device)
 	reg = DEMDLayer().to(device)
@@ -49,10 +49,10 @@ def main(args):
 											 shuffle=False, num_workers=1)
 
 	for epoch in range(args.epochs):
-		train_loss, train_accuracy, train_dist = do_reg_epoch(model, train_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, optim=optim, device=device, outString=outString)
+		train_loss, train_accuracy, train_dist, _ = do_reg_epoch(model, train_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, optim=optim, device=device, outString=outString)
 
 		with torch.no_grad():
-			valid_loss, valid_accuracy, valid_dist = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, optim=None, device=device, outString=outString)
+			valid_loss, valid_accuracy, valid_dist, valstats = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, optim=None, device=device, outString=outString)
 
 		tqdm.write(f'{args.model} EPOCH {epoch:03d}: train_loss={train_loss:.4f}, train_accuracy={train_accuracy:.4f} '
 				   f'valid_loss={valid_loss:.4f}, valid_accuracy={valid_accuracy:.4f}, train_demd_dist={train_dist:f}')
@@ -60,6 +60,7 @@ def main(args):
 		print('Saving model...')
 		torch.save(model.state_dict(), outString + '.pt')
 
+	run_dict.update(valstats)
 	run_dict['final_train_acc'] = train_accuracy
 	run_dict['final_train_loss'] = train_loss
 	run_dict['final_train_dist'] = train_dist.item()
@@ -82,12 +83,13 @@ if __name__ == '__main__':
 	arg_parser.add_argument('--batch_size', type=int, default=128)
 	arg_parser.add_argument('--optim', type=str, default='sgd', choices=['sgd', 'adam'])
 	arg_parser.add_argument('--epochs', type=int, default=1)
-	arg_parser.add_argument('--n_classes', type=int, default=11)
+	arg_parser.add_argument('--n_classes', type=int, default=1)
+	arg_parser.add_argument('--input_size', type=int, default=1)
 	arg_parser.add_argument('--learning_rate', type=float, default=0.001)
 	arg_parser.add_argument('--momentum', type=float, default=0.9)
 	arg_parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay, or l2_regularization for SGD')
 	arg_parser.add_argument('--lambda_reg', type=float, default=1e-5, help='dEMD reg weight')
 	arg_parser.add_argument('--nbins', type=int, default=2, help='number of bins for histogram')
-	arg_parser.add_argument('--outfile', type=str, default='res/tmp_results.csv', help='results file to print to')
+	arg_parser.add_argument('--outfile', type=str, default='results/tmp_resnew.csv', help='results file to print to')
 	args = arg_parser.parse_args()
 	main(args)

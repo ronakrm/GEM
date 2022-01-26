@@ -61,7 +61,15 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist,
 
 	valid_dist = reg(tacts, tattrs)
 
-	genClassificationReport(tacts, ttargets, tattrs, dist=dist, nbins=nbins)
+	if optim is None:
+		accs, dp, eo, demd = genClassificationReport(tacts, ttargets, tattrs, dist=dist, nbins=nbins)
+		vals = {}
+		vals['maxacc'] = max(accs).item()
+		vals['minacc'] = min(accs).item()
+		vals['dp_gap'] = (max(dp) - min(dp)).item()
+		vals['eo_gap'] = (max(eo) - min(eo)).item()
+	else:
+		vals = None
 
-	return mean_loss, mean_accuracy, valid_dist
+	return mean_loss, mean_accuracy, valid_dist, vals
 
