@@ -1,1 +1,2 @@
-python run.py --dataset binary-mnist --model BinMNISTNET --epochs 10 --n_classes 1 --lambda_reg 0
+# python run.py --dataset binary-mnist --model BinMNISTNET --epochs 10 --n_classes 1 --lambda_reg 0
+python run.py --dataset binary-mnist --model BinMNISTRegressor --epochs 10 --n_classes 1 --lambda_reg 0

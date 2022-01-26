@@ -17,3 +17,14 @@ class BinMNISTNET(nn.Module):
         # out2 = self.fc3(out)
         # return out1, out2
         return out1
+
+
+class BinMNISTRegressor(nn.Module):
+    def __init__(self, input_size=4096, num_classes=10):
+        super(BinMNISTRegressor, self).__init__()
+        self.fc1 = nn.Linear(input_size, num_classes)
+
+    def forward(self, x):
+        x = x.reshape(-1, 64 * 64)
+        out = self.fc1(x)
+        return out
