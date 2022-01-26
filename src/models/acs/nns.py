@@ -1,8 +1,8 @@
 import torch.nn as nn
 
 
-class ACSEmploymentNet(nn.Module):
-    def __init__(self, input_size=16, hidden_size=10, num_classes=1):
+class ACSNet(nn.Module):
+    def __init__(self, input_size, hidden_size=10, num_classes=1):
         super().__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
@@ -14,10 +14,10 @@ class ACSEmploymentNet(nn.Module):
         out1 = self.fc2(out)
         return out1
 
-class ACSEmploymentRegressor(nn.Module):
-    def __init__(self):
+class ACSRegressor(nn.Module):
+    def __init__(self, input_size, num_classes=1):
         super().__init__()
-        self.fc1 = nn.Linear(16, 1)
+        self.fc1 = nn.Linear(input_size, num_classes)
      
     def forward(self, x):
         out = self.fc1(x)
