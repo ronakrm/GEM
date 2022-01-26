@@ -15,6 +15,8 @@ from utils import manual_seed
 from src.measures.fairtorch_constraints import DemographicParityLoss
 from demd import DEMDLayer, dEMD
 
+import time
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def main(args):
@@ -29,7 +31,7 @@ def main(args):
 	model = eval(args.model)().to(device)
 
 	criterion = torch.nn.BCELoss()
-	reg = DEMDLayer()
+	reg = DEMDLayer(discretization=args.nbins)
 	dist = dEMD()
 	# reg = DemographicParityLoss()
 	print('Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
@@ -48,11 +50,17 @@ def main(args):
 	valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch_size,
 											 shuffle=False, num_workers=1)
 
+	tottraintime = 0
 	for epoch in range(args.epochs):
-		train_loss, train_accuracy, train_dist = do_reg_epoch(model, train_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, optim=optim, device=device, outString=outString)
+		print(f'*** EPOCH {epoch} ***')
+		tic = time.time()
+		train_loss, train_accuracy, train_dist = do_reg_epoch(model, train_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, optim=optim, device=device, outString=outString)
+		toc = time.time()
+
+		tottraintime += toc
 
 		with torch.no_grad():
-			valid_loss, valid_accuracy, valid_dist = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, optim=None, device=device, outString=outString)
+			valid_loss, valid_accuracy, valid_dist = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, optim=None, device=device, outString=outString)
 
 		tqdm.write(f'{args.model} EPOCH {epoch:03d}: train_loss={train_loss:.4f}, train_accuracy={train_accuracy:.4f} '
 				   f'valid_loss={valid_loss:.4f}, valid_accuracy={valid_accuracy:.4f}, train_demd_dist={train_dist:f}')
@@ -60,6 +68,7 @@ def main(args):
 		print('Saving model...')
 		torch.save(model.state_dict(), outString + '.pt')
 
+	run_dict['avg_train_epoch_time'] = tottraintime / args.epochs
 	run_dict['final_train_acc'] = train_accuracy
 	run_dict['final_train_loss'] = train_loss
 	run_dict['final_train_dist'] = train_dist.item()
@@ -75,18 +84,20 @@ def main(args):
 	
 
 if __name__ == '__main__':
-	arg_parser = argparse.ArgumentParser(description='Train a network')
+	arg_parser = argparse.ArgumentParser(description='D-EMD NNs')
 	arg_parser.add_argument('--train_seed', type=int, default=0)
-	arg_parser.add_argument('--dataset', type=str, default='adult')
-	arg_parser.add_argument('--model', type=str, default='AdultRegressor')
+	arg_parser.add_argument('--dataset', type=str, default='acs-employ')
+	arg_parser.add_argument('--model', type=str, default='ACSEmploymentNet')
 	arg_parser.add_argument('--batch_size', type=int, default=128)
 	arg_parser.add_argument('--optim', type=str, default='sgd', choices=['sgd', 'adam'])
-	arg_parser.add_argument('--epochs', type=int, default=1)
+	arg_parser.add_argument('--epochs', type=int, default=5)
 	arg_parser.add_argument('--n_classes', type=int, default=11)
 	arg_parser.add_argument('--learning_rate', type=float, default=0.001)
 	arg_parser.add_argument('--momentum', type=float, default=0.9)
 	arg_parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay, or l2_regularization for SGD')
 	arg_parser.add_argument('--lambda_reg', type=float, default=1e-5, help='dEMD reg weight')
+	arg_parser.add_argument('--nbins', type=float, default=2, help='dEMD bin level')
 	arg_parser.add_argument('--outfile', type=str, default='res/tmp_results.csv', help='results file to print to')
 	args = arg_parser.parse_args()
+	# arg_parser.print_help()
 	main(args)
