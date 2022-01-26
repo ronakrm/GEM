@@ -9,8 +9,8 @@ endID=10
 run () {
 	# echo $1 $2 $3 $4
 	python compute.py --seed $1 \
-					--n $2 \
-					--d $3 \
+					-n $2 \
+					-d $3 \
 					--model $4 \
 					--outfile $OUTPUT_FILE
 }
