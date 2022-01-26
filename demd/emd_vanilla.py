@@ -72,8 +72,6 @@ def minimize(f, x_0, d, n, vecsize, niters=100, lr=0.1, print_rate=100):
 
 	print(f'Inital:\t\tObj:\t{funcval:.4f}\tGradNorm:\t{gn:.4f}')
 
-	import pdb; pdb.set_trace()
-
 	for i in range(niters):
 
 		x = renormalize(x, d, n, vecsize)
