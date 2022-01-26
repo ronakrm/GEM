@@ -26,10 +26,10 @@ def main(args):
 	print(outString)
 	
 	exec("from src.models import %s" % args.model)
-	model = eval(args.model)().to(device)
+	model = eval(args.model)(num_classes=args.n_classes).to(device)
 
-	criterion = torch.nn.BCELoss()
-	reg = DEMDLayer()
+	criterion = torch.nn.BCELoss().to(device)
+	reg = DEMDLayer().to(device)
 	dist = dEMD()
 	# reg = DemographicParityLoss()
 	print('Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
@@ -49,10 +49,10 @@ def main(args):
 											 shuffle=False, num_workers=1)
 
 	for epoch in range(args.epochs):
-		train_loss, train_accuracy, train_dist = do_reg_epoch(model, train_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, optim=optim, device=device, outString=outString)
+		train_loss, train_accuracy, train_dist = do_reg_epoch(model, train_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, optim=optim, device=device, outString=outString)
 
 		with torch.no_grad():
-			valid_loss, valid_accuracy, valid_dist = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, optim=None, device=device, outString=outString)
+			valid_loss, valid_accuracy, valid_dist = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, optim=None, device=device, outString=outString)
 
 		tqdm.write(f'{args.model} EPOCH {epoch:03d}: train_loss={train_loss:.4f}, train_accuracy={train_accuracy:.4f} '
 				   f'valid_loss={valid_loss:.4f}, valid_accuracy={valid_accuracy:.4f}, train_demd_dist={train_dist:f}')
@@ -87,6 +87,7 @@ if __name__ == '__main__':
 	arg_parser.add_argument('--momentum', type=float, default=0.9)
 	arg_parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay, or l2_regularization for SGD')
 	arg_parser.add_argument('--lambda_reg', type=float, default=1e-5, help='dEMD reg weight')
+	arg_parser.add_argument('--nbins', type=int, default=2, help='number of bins for histogram')
 	arg_parser.add_argument('--outfile', type=str, default='res/tmp_results.csv', help='results file to print to')
 	args = arg_parser.parse_args()
 	main(args)
