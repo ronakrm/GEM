@@ -14,8 +14,8 @@ import torch
 
 from demd.emd import greedy_primal_dual
 from demd.emd_vanilla import demd_func, approxGrad, matricize
-# from demd.demdLayer import DEMDLayer
-from demd.emd_torch import dEMD, dEMDLossFunc
+from demd.demdFunc import dEMD
+from demd.demdLoss import dEMDLossFunc
 
 from utils import manual_seed
 
@@ -27,7 +27,11 @@ def genNumpyData(n, d):
 	data = []
 	for i in range(d):
 		m = 100*np.random.rand(1)
-		a = ot.datasets.make_1D_gauss(n, m=m, s=5)
+		# a = ot.datasets.make_1D_gauss(n, m=m, s=5)
+		# print(a)
+		# data.append(a)
+		a = np.random.rand(n)
+		a = a/sum(a)
 		data.append(a)
 
 	return data

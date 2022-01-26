@@ -19,13 +19,11 @@ def sum_2d_emd_dists(As, bary, M):
 
     return tmp
     
-def sink_1d_bary(data, M):
-
-	A = data
+def sink_1d_bary(data, M, n, d):
 
 	reg = 1e-2
 
-	bary, bary_log = ot.barycenter(A, M, reg, weights=None, verbose=False, log=True)
+	bary, bary_log = ot.barycenter(data, M, reg, weights=None, verbose=False, log=True)
 	return bary, bary_log['err'][-1]
 
 def lp_1d_bary(data, M, n, d):
@@ -40,7 +38,7 @@ def lp_1d_bary(data, M, n, d):
 	return bary, bary_log['fun']
 
 
-def demd(data, n, d):
+def demd(data, M, n, d):
     log = greedy_primal_dual(data)
 
     #nonzeros = {}
@@ -50,19 +48,23 @@ def demd(data, n, d):
     #        nonzeros[tmp] = log['x'][tmp]
 
     # get graph
-    M = np.zeros([n, d])
-    y_J = log['dual']
-    for i in range(1,n):
-        for j in range(d):
-            M[i,j] = y_J[j][i] - y_J[j][i-1]
+    # M = np.zeros([n, d])
+    # y_J = log['dual']
+    # for i in range(1,n):
+    #     for j in range(d):
+    #         M[i,j] = y_J[j][i] - y_J[j][i-1]
 
-    M = M[1:,:]
+    # M = M[1:,:]
 
     #print('should be rowsparse:')
     #print(M)
 
 
-    return log['primal objective'], log['dual'], np.transpose(M)
+    return log['primal objective'], log['dual']#, np.transpose(M)
+
+def cvx(data, M, n, d):
+    obj = cvxprimal(data)['primal objective']
+    return obj
 
 def compare_all(data, M, n, d):
 

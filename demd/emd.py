@@ -25,6 +25,17 @@ def OBJ(i):
     return max(i) - min(i)
     # return 0 if max(i) == min(i) else 1
 
+# def OBJ(i, imsize=1):
+#     imsize = 20
+#     # backcompute cost for 2D for all d dims
+#     costs = []
+#     for j in i:
+#         row = j // imsize
+#         col = j % imsize
+#         costs.append((row + col))
+#     return max(costs) - min(costs)
+
+
 def greedy_primal_dual(aa, verbose=False):
     sum_aa = [sum(_) for _ in aa]
     #assert abs(max(sum_aa)-min(sum_aa)) < 1e-10
