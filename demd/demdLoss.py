@@ -15,7 +15,7 @@ class dEMDLoss(torch.autograd.Function):
 		AA = x.clone()
 
 		xx = {}
-		dual = torch.zeros(d,n).double()
+		dual = torch.zeros(d,n).double().to(x.device)
 		idx = [0,]*d
 		obj = 0
 
