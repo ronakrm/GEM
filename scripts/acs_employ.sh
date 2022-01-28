@@ -1,6 +1,6 @@
-data='acs-income'
+data='acs-employ'
 batch_size=256
-outfile='results/acs_inc_results_20epochs.csv'
+outfile='results/acs_emp_results_20epochs.csv'
 
 
 run () {
@@ -8,7 +8,7 @@ run () {
 			--dataset $data  \
 			--model $model \
 			--batch_size $batch_size \
-			--input_size 10 \
+			--input_size 16 \
 			--n_classes 1 \
 			--epochs 20 \
 			--lambda_reg $1 \

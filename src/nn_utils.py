@@ -64,10 +64,10 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist,
 	if optim is None:
 		accs, dp, eo, demd = genClassificationReport(tacts, ttargets, tattrs, dist=dist, nbins=nbins)
 		vals = {}
-		vals['maxacc'] = max(accs).item()
-		vals['minacc'] = min(accs).item()
-		vals['dp_gap'] = (max(dp) - min(dp)).item()
-		vals['eo_gap'] = (max(eo) - min(eo)).item()
+		vals['maxacc'] = max(accs.values()).item()
+		vals['minacc'] = min(accs.values()).item()
+		vals['dp_gap'] = (max(dp.values()) - min(dp.values())).item()
+		vals['eo_gap'] = (max(eo.values()) - min(eo.values())).item()
 	else:
 		vals = None
 

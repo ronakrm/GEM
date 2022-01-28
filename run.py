@@ -29,7 +29,7 @@ def main(args):
 	model = eval(args.model)(input_size=args.input_size, num_classes=args.n_classes).to(device)
 
 	criterion = torch.nn.BCELoss().to(device)
-	reg = DEMDLayer().to(device)
+	reg = DEMDLayer(discretization=args.nbins).to(device)
 	dist = dEMD()
 	# reg = DemographicParityLoss()
 	print('Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 	arg_parser.add_argument('--momentum', type=float, default=0.9)
 	arg_parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay, or l2_regularization for SGD')
 	arg_parser.add_argument('--lambda_reg', type=float, default=1e-5, help='dEMD reg weight')
-	arg_parser.add_argument('--nbins', type=int, default=2, help='number of bins for histogram')
+	arg_parser.add_argument('--nbins', type=int, default=10, help='number of bins for histogram')
 	arg_parser.add_argument('--outfile', type=str, default='results/tmp_resnew.csv', help='results file to print to')
 	args = arg_parser.parse_args()
 	main(args)
