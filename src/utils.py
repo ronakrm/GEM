@@ -50,7 +50,7 @@ def getHist(acts, nbins=10):
 	dist = torch.histc(cdfs, bins=nbins, min=0, max=1)
 	return dist/sum(dist)
 
-def genClassificationReport(acts, targets, attrs, dist=None, nbins=10):
+def genClassificationReport(acts, targets, attrs, dist=None, nbins=10, verbose=False):
 
 	groups = torch.unique(attrs).numpy()
 
@@ -70,17 +70,19 @@ def genClassificationReport(acts, targets, attrs, dist=None, nbins=10):
 	total_acc = getAcc(acts, targets)
 	full_hist = getHist(acts, nbins=nbins).detach().cpu().numpy()
 
-	print('*'*5, 'Classification Report', '*'*5)
-	with np.printoptions(precision=3, suppress=True):
-		print('Class\t\tAcc\t\tDP\t\tEO\t\tHist')
-		for group in groups:
-			print(f'{group}\t\t{accs[group]:.4f}\t\t{dp[group]:.4f}\t\t{eo[group]:.4f}\t\t{hists[group].detach().cpu().numpy()}')
-		print(f'Total Acc: {total_acc}')
-		print(f'Global Hist: {full_hist}')
+	if verbose:
+		print('*'*5, 'Classification Report', '*'*5)
+		with np.printoptions(precision=3, suppress=True):
+			print('Class\t\tAcc\t\tDP\t\tEO\t\tHist')
+			for group in groups:
+				print(f'{group}\t\t{accs[group]:.4f}\t\t{dp[group]:.4f}\t\t{eo[group]:.4f}\t\t{hists[group].detach().cpu().numpy()}')
+			print(f'Total Acc: {total_acc}')
+			print(f'Global Hist: {full_hist}')
 
 	if dist is not None:
 		stacked = torch.stack(list(hists.values()))
 		demd = dist(stacked).item()
-		print(f'Full dEMD Distance: {demd}')
+		if verbose:
+			print(f'Full dEMD Distance: {demd}')
 
 	return accs, dp, eo, demd
