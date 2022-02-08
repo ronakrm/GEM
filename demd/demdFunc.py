@@ -2,21 +2,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-# Torch Implementation of algorithm listed in 
-# 
-#  @article{KLINE2019128,
-#  title = "Properties of the d-dimensional earth mover’s problem",
-#  journal = "Discrete Applied Mathematics",
-#  volume = "265",
-#  pages = "128 - 141",
-#  year = "2019",
-#  issn = "0166-218X",
-#  doi = "https://doi.org/10.1016/j.dam.2019.02.042",
-#  url = "http://www.sciencedirect.com/science/article/pii/S0166218X19301441",
-#  author = "Jeffery Kline",
-#  keywords = "Submodularity, Monge Property, Linear Programming, Greedy Algorithm, Transportation Problem, Convex Polytopes"}
-
-
 def OBJ(i):
 	return max(i) - min(i)
 	# return 0 if max(i) == min(i) else 1

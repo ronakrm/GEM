@@ -45,6 +45,7 @@ gg <- ggplot(othistdata, aes(x=d, y=time, fill=model)) +
   geom_boxplot(alpha=1.0) +
   myTheme + 
   #theme(legend.position = c(0.15,0.7)) +
+  theme(legend.position="bottom") + 
   ylab('Time (seconds)') + 
   xlab('Number of Distributions') +
   scale_y_continuous(trans='log2', labels=scaleFUN) +

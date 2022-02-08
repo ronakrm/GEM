@@ -6,7 +6,7 @@ from tqdm import tqdm
 from src.utils import genClassificationReport
 
 def do_reg_epoch(model, dataloader, criterion, reg, dist, 
-					epoch, nepochs, lambda_reg, nbins,
+					epoch, nepochs, lambda_reg, nbins, regType,
 					optim=None, device='cpu', outString=''):
 	# saves last two epochs gradients for computing finite difference Hessian
 	total_loss = 0
@@ -25,15 +25,19 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist,
 
 	for x, target in tqdm(dataloader):
 
-		(y_true, attr) = target[:, 0], target[:, 1].to(device)
+		(y_true, attr) = target[:, 0], target[:, 1].int().to(device)
 		x, y_true = x.to(device), y_true.to(device).float()#.unsqueeze(1)
 
 		act = model(x).squeeze()
 		y_sig = torch.sigmoid(act)
 		recon_loss = criterion(y_sig, y_true)
 
-		reg_loss = reg(act, attr)
-		# reg_loss = reg(X=None, y=y_true, out=act, sensitive=attr)
+		# import pdb; pdb.set_trace()
+		if regType == 'demd':
+			reg_loss = reg(act, attr)
+		else:
+			# sens = attr.cpu().detach().numpy().astype(int)
+			reg_loss = reg(X=None, y=y_true.int(), out=act, sensitive=attr)
 
 		loss = recon_loss + lambda_reg*reg_loss
 
@@ -48,9 +52,9 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist,
 
 		total_accuracy += ((y_sig>0.5) == y_true).float().mean().item()
 
-		acts.extend(act.detach().cpu())
-		targets.extend(y_true.detach().cpu())
-		attrs.extend(attr.detach().cpu())
+		acts.extend(act)
+		targets.extend(y_true)
+		attrs.extend(attr)
 
 	mean_loss = total_loss / len(dataloader)
 	mean_accuracy = total_accuracy / len(dataloader)
@@ -59,9 +63,17 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist,
 	ttargets = torch.stack(targets)
 	tattrs = torch.stack(attrs)
 
-	valid_dist = reg(tacts, tattrs)
+	if optim is None:
+		verbose = True
+	else:
+		verbose = False
 
-	genClassificationReport(tacts, ttargets, tattrs, dist=dist, nbins=nbins)
+	accs, dp, eo, valid_dist = genClassificationReport(tacts.cpu(), ttargets.cpu(), tattrs.cpu(), dist=dist, nbins=nbins, verbose=verbose)
+	vals = {}
+	vals['maxacc'] = max(accs.values()).item()
+	vals['minacc'] = min(accs.values()).item()
+	vals['dp_gap'] = (max(dp.values()) - min(dp.values())).item()
+	vals['eo_gap'] = (max(eo.values()) - min(eo.values())).item()
 
-	return mean_loss, mean_accuracy, valid_dist
+	return mean_loss, mean_accuracy, valid_dist, vals
 

@@ -66,7 +66,10 @@ class DemographicParityLoss(ConstraintLoss):
         expected_values_list = []
         for v in self.sensitive_classes:
             idx_true = sensitive == v  # torch.bool
-            expected_values_list.append(out[idx_true].mean())
+            if sum(idx_true) == 0:
+                expected_values_list.append(torch.Tensor([0.5]).to(self.device)[0])
+            else:
+                expected_values_list.append(out[idx_true].mean())
         expected_values_list.append(out.mean())
         return torch.stack(expected_values_list)
 
@@ -117,8 +120,12 @@ class EqualiedOddsLoss(ConstraintLoss):
         for u in self.sensitive_classes:
             for v in self.y_classes:
                 idx_true = (y == v) * (sensitive == u)  # torch.bool
-                expected_values_list.append(out[idx_true].mean())
+                if sum(idx_true) == 0:
+                    expected_values_list.append(torch.Tensor([0.5]).to(self.device)[0])
+                else:
+                    expected_values_list.append(out[idx_true].mean())
         # sensitive is star
+        # import pdb; pdb.set_trace()
         for v in self.y_classes:
             idx_true = y == v
             expected_values_list.append(out[idx_true].mean())
