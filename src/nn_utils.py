@@ -35,7 +35,7 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist,
 		# import pdb; pdb.set_trace()
 		if regType == 'none':
 			reg_loss = 0
-		elif regType == 'demd':
+		elif regType == 'demd' or regType == 'wasbary':
 			reg_loss = reg(act, attr)
 		else:
 			# sens = attr.cpu().detach().numpy().astype(int)

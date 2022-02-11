@@ -13,6 +13,7 @@ from src.dataset_helper import getDatasets
 from utils import manual_seed
 
 from src.measures.fairtorch_constraints import DemographicParityLoss, EqualiedOddsLoss
+from src.measures.barywas import WassersteinBarycenter
 from demd import DEMDLayer, dEMD
 
 import time
@@ -35,6 +36,8 @@ def main(args):
 
 	if args.regType == 'demd':
 		reg = DEMDLayer(discretization=args.nbins).to(device)
+	elif args.regType == 'wasbary':
+		reg = WassersteinBarycenter(discretization=args.nbins).to(device)
 	elif args.regType == 'dp':
 		reg = DemographicParityLoss(sensitive_classes=sens_classes, alpha=1.0).to(device)
 	elif args.regType == 'eo':
@@ -107,7 +110,7 @@ if __name__ == '__main__':
 	arg_parser.add_argument('--learning_rate', type=float, default=0.001)
 	arg_parser.add_argument('--momentum', type=float, default=0.9)
 	arg_parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay, or l2_regularization for SGD')
-	arg_parser.add_argument('--regType', type=str, default='demd', choices=['none', 'demd', 'dp', 'eo'], help='none, demd, dp, or eo')
+	arg_parser.add_argument('--regType', type=str, default='demd', choices=['none', 'demd', 'dp', 'eo', 'wasbary'], help='none, demd, wasbary, dp, or eo')
 	arg_parser.add_argument('--lambda_reg', type=float, default=1e-5, help='dEMD reg weight')
 	arg_parser.add_argument('--nbins', type=int, default=10, help='number of bins for histogram')
 	arg_parser.add_argument('--nSens', type=int, default=10, help='number of sensitive classes')
