@@ -5,14 +5,15 @@ from torchvision.transforms import Compose, ToTensor, Normalize
 # from torchvision.transforms import Resize, RandomCrop, RandomHorizontalFlip
 
 def getDatasets(name='adult',
-					attr_col='race',
+					target=None,
+					attr_cols='race',
 					data_augment=False,
 					download=True):
 
 	if name == 'adult':
 		from src.datasets import Adult
-		train_dataset = Adult(attr_col=attr_col, train=True)
-		valid_dataset = Adult(attr_col=attr_col, train=False)
+		train_dataset = Adult(attr_col=attr_cols, train=True)
+		valid_dataset = Adult(attr_col=attr_cols, train=False)
 	elif name == 'acs-employ':
 		from src.datasets import ACSEmployment
 		train_dataset = ACSEmployment(train=True)
@@ -31,11 +32,32 @@ def getDatasets(name='adult',
 			Normalize((0.1307,), (0.3081,)),
 		])
 
-		train_dataset = BinarySizeMNIST(root='./data', train=True, download=True, transform=train_transformation)
+		train_dataset = BinarySizeMNIST(root='./data', train=True, download=download, transform=train_transformation)
 		# train_dataset = LabelSubsetWrapper(train_dataset, which_labels=(0,1))
 		
-		valid_dataset = BinarySizeMNIST(root='./data', train=False, download=True, transform=train_transformation)
+		valid_dataset = BinarySizeMNIST(root='./data', train=False, download=download, transform=train_transformation)
 		# val_dataset = LabelSubsetWrapper(val_dataset, which_labels=(0,1))
+
+	elif name == 'celeba-test':
+		target = 'Smiling'
+		attr_cols = ['Young']
+		# attr_cols = ['Young', 'Brown_Hair']
+		from src.datasets import CelebA
+
+		train_dataset = CelebA('./data/celeba/', train=True, target=target, 
+										spurious=attr_cols,
+										n_samples=1000)
+		valid_dataset = CelebA('./data/celeba/', train=False, target=target, 
+										spurious=attr_cols,
+										n_samples=1000)
+	
+	elif name == 'celeba':
+		from src.datasets import CelebA
+
+		train_dataset = CelebA(root='./data/celeba/', train=True, target=target, 
+										spurious=attr_cols)
+		valid_dataset = CelebA('./data/celeba/', train=False, target=target, 
+										spurious=attr_cols)
 
 	# elif name == 'mnist':
 	# 	from torchvision.datasets import MNIST
