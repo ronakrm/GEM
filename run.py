@@ -39,6 +39,8 @@ def main(args):
 		reg = DemographicParityLoss(sensitive_classes=sens_classes, alpha=1.0).to(device)
 	elif args.regType == 'eo':
 		reg = EqualiedOddsLoss(sensitive_classes=sens_classes, alpha=1.0).to(device)
+	elif args.regType == 'none':
+		reg = torch.nn.Identity()
 
 	dist = dEMD()
 
@@ -57,6 +59,8 @@ def main(args):
 
 	valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch_size,
 											 shuffle=False, num_workers=1)
+
+	# import pdb; pdb.set_trace()
 
 	tottraintime = 0
 	for epoch in range(args.epochs):
@@ -103,7 +107,7 @@ if __name__ == '__main__':
 	arg_parser.add_argument('--learning_rate', type=float, default=0.001)
 	arg_parser.add_argument('--momentum', type=float, default=0.9)
 	arg_parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay, or l2_regularization for SGD')
-	arg_parser.add_argument('--regType', type=str, default=1e-5, help='demd, dp, or eo')
+	arg_parser.add_argument('--regType', type=str, default='demd', choices=['none', 'demd', 'dp', 'eo'], help='none, demd, dp, or eo')
 	arg_parser.add_argument('--lambda_reg', type=float, default=1e-5, help='dEMD reg weight')
 	arg_parser.add_argument('--nbins', type=int, default=10, help='number of bins for histogram')
 	arg_parser.add_argument('--nSens', type=int, default=10, help='number of sensitive classes')
