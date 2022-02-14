@@ -4,3 +4,5 @@ data/*
 figs/*
 *.csv
 *.pdf
+.RData
+.Rhistory
