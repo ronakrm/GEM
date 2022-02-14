@@ -22,26 +22,26 @@ def getOutputs(model, dataloader, device):
 
 	return torch.stack(acts), torch.stack(targets), torch.stack(attrs)
 
-def getDP(acts, labels):
+def getDP(acts, labels, threshold=0.5):
 	y_sigs = torch.sigmoid(acts)
 
 	if len(y_sigs.shape) == 1:
-		return ((y_sigs>0.5) == True).float().mean()
+		return ((y_sigs>threshold) == True).float().mean()
 
-def getEO(acts, labels):
+def getEO(acts, labels, threshold=0.5):
 	y_sigs = torch.sigmoid(acts)
 
 	if len(y_sigs.shape) == 1:
-		a = ((y_sigs>0.5) == True).bool()
+		a = ((y_sigs>threshold) == True).bool()
 		b = a & (labels==1).bool()
 		return (b).float().mean()
 
 
-def getAcc(acts, labels):
+def getAcc(acts, labels, threshold=0.5):
 	y_sigs = torch.sigmoid(acts)
 
 	if len(y_sigs.shape) == 1:
-		return ((y_sigs>0.5) == labels).float().mean()
+		return ((y_sigs>threshold) == labels).float().mean()
 	else:
 		return (y_sig.max(1)[1] == labels).float().mean()
 
@@ -50,7 +50,7 @@ def getHist(acts, nbins=10):
 	dist = torch.histc(cdfs, bins=nbins, min=0, max=1)
 	return dist/sum(dist)
 
-def genClassificationReport(acts, targets, attrs, dist=None, nbins=10, verbose=False):
+def genClassificationReport(acts, targets, attrs, dist=None, nbins=10, threshold=0.5, verbose=False):
 
 	groups = torch.unique(attrs).numpy()
 
@@ -62,12 +62,12 @@ def genClassificationReport(acts, targets, attrs, dist=None, nbins=10, verbose=F
 	for group in groups:
 		gacts = acts[attrs==group]
 		gtargets = targets[attrs==group]
-		accs[group] = getAcc(gacts, gtargets).detach().cpu().numpy()
-		dp[group] = getDP(gacts, gtargets).detach().cpu().numpy()
-		eo[group] = getEO(gacts, gtargets).detach().cpu().numpy()
+		accs[group] = getAcc(gacts, gtargets, threshold=threshold).detach().cpu().numpy()
+		dp[group] = getDP(gacts, gtargets, threshold=threshold).detach().cpu().numpy()
+		eo[group] = getEO(gacts, gtargets, threshold=threshold).detach().cpu().numpy()
 		hists[group] = getHist(gacts, nbins=nbins)
 
-	total_acc = getAcc(acts, targets)
+	total_acc = getAcc(acts, targets, threshold=threshold)
 	full_hist = getHist(acts, nbins=nbins).detach().cpu().numpy()
 
 	if verbose:

@@ -7,6 +7,7 @@ from src.utils import genClassificationReport
 
 def do_reg_epoch(model, dataloader, criterion, reg, dist, 
 					epoch, nepochs, lambda_reg, nbins, regType,
+					threshold=0.5,
 					optim=None, device='cpu', outString=''):
 	# saves last two epochs gradients for computing finite difference Hessian
 	total_loss = 0
@@ -50,7 +51,7 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist,
 		nsamps += len(y_true)
 		total_loss += loss.item()
 
-		total_accuracy += ((y_sig>0.5) == y_true).float().mean().item()
+		total_accuracy += ((y_sig>threshold) == y_true).float().mean().item()
 
 		acts.extend(act)
 		targets.extend(y_true)
@@ -68,7 +69,8 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist,
 	else:
 		verbose = False
 
-	accs, dp, eo, valid_dist = genClassificationReport(tacts.cpu(), ttargets.cpu(), tattrs.cpu(), dist=dist, nbins=nbins, verbose=verbose)
+	accs, dp, eo, valid_dist = genClassificationReport(tacts.cpu(), ttargets.cpu(), tattrs.cpu(),
+	 dist=dist, nbins=nbins, threshold=threshold,verbose=verbose)
 	vals = {}
 	vals['maxacc'] = max(accs.values()).item()
 	vals['minacc'] = min(accs.values()).item()
