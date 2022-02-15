@@ -38,6 +38,8 @@ def main(args):
 		reg = DemographicParityLoss(sensitive_classes=sens_classes, alpha=1.0).to(device)
 	elif args.regType == 'eo':
 		reg = EqualiedOddsLoss(sensitive_classes=sens_classes, alpha=1.0).to(device)
+	elif args.regType == 'none':
+		reg = torch.nn.Identity()
 
 	dist = dEMD()
 
@@ -59,10 +61,17 @@ def main(args):
 
 	
 	for epoch in range(args.epochs):
-		train_loss, train_accuracy, train_dist, _ = do_reg_epoch(model, train_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, regType=args.regType, optim=optim, device=device, outString=outString)
+		print(f'*** EPOCH {epoch} ***')
+		train_loss, train_accuracy, train_dist, _ = do_reg_epoch(model, train_loader, 
+														criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins,
+														 regType=args.regType, optim=optim, device=device, outString=outString,
+														 threshold=args.train_threshold)
 
 		with torch.no_grad():
-			valid_loss, valid_accuracy, valid_dist, valstats = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, regType=args.regType, optim=None, device=device, outString=outString)
+			valid_loss, valid_accuracy, valid_dist, valstats = do_reg_epoch(model, valid_loader, 
+														criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, 
+														regType=args.regType, optim=None, device=device, outString=outString,
+														threshold=args.train_threshold)
 
 		tqdm.write(f'{args.model} EPOCH {epoch:03d}: train_loss={train_loss:.4f}, train_accuracy={train_accuracy:.4f} '
 				   f'valid_loss={valid_loss:.4f}, valid_accuracy={valid_accuracy:.4f}, train_demd_dist={train_dist:f}')
@@ -74,20 +83,28 @@ def main(args):
 	run_dict['final_train_loss'] = train_loss
 	run_dict['final_train_dist'] = train_dist
 
-
-	thresholds = np.arange(0.4,0.62,0.02)
+	thresholds = np.arange(0.2,0.9,0.1)
 	for t in thresholds:
+		print(f'*** Threshold Eval: {t} ***')
 		run_dict['thresh'] = t
 		with torch.no_grad():
+			train_loss, train_accuracy, train_dist, _ = do_reg_epoch(model, train_loader, criterion, reg, dist, 
+																epoch, args.epochs, args.lambda_reg, args.nbins,
+																threshold=t,
+								 								regType=args.regType, optim=None, device=device, outString=outString)
 			valid_loss, valid_accuracy, valid_dist, valstats = do_reg_epoch(model, valid_loader, criterion, reg, dist, 
 																epoch, args.epochs, args.lambda_reg, args.nbins,
 																threshold=t,
-								 								regType=args.regType, optim=None, device=device, outString=outString)		
+								 								regType=args.regType, optim=None, device=device, outString=outString)
 
 		run_dict.update(valstats)
-		run_dict['final_valid_acc'] = valid_accuracy
-		run_dict['final_valid_loss'] = valid_loss
-		run_dict['final_valid_dist'] = valid_dist
+		run_dict['thresh_valid_acc'] = valid_accuracy
+		run_dict['thresh_valid_loss'] = valid_loss
+		run_dict['thresh_valid_dist'] = valid_dist
+
+		run_dict['thresh_train_acc'] = train_accuracy
+		run_dict['thresh_train_loss'] = train_loss
+		run_dict['thresh_train_dist'] = train_dist
 
 		df = pd.DataFrame.from_records([run_dict])
 		if os.path.isfile(args.outfile):
@@ -109,8 +126,9 @@ if __name__ == '__main__':
 	arg_parser.add_argument('--learning_rate', type=float, default=0.001)
 	arg_parser.add_argument('--momentum', type=float, default=0.9)
 	arg_parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay, or l2_regularization for SGD')
-	arg_parser.add_argument('--regType', type=str, default=1e-5, help='demd, dp, or eo')
+	arg_parser.add_argument('--regType', type=str, default='demd', choices=['none', 'demd', 'dp', 'eo', 'wasbary'], help='none, demd, wasbary, dp, or eo')
 	arg_parser.add_argument('--lambda_reg', type=float, default=1e-5, help='dEMD reg weight')
+	arg_parser.add_argument('--train_threshold', type=float, default=0.5, help='threshold for binary classification')
 	arg_parser.add_argument('--nbins', type=int, default=10, help='number of bins for histogram')
 	arg_parser.add_argument('--nSens', type=int, default=10, help='number of sensitive classes')
 	arg_parser.add_argument('--outfile', type=str, default='results/tmp_resnew.csv', help='results file to print to')
