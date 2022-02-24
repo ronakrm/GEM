@@ -23,9 +23,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def main(args):
 
 	run_dict = vars(args)
+	run_dict['start_time'] = time.time()
 
 	manual_seed(args.train_seed)
-	outString = 'trained_models/'+args.dataset+"_"+args.model+'_epochs_' + str(args.epochs)+'_lr_' + str(args.learning_rate)+'_wd_' + str(args.weight_decay)+'_bs_' + str(args.batch_size)+'_optim_' + str(args.optim)
+	outString = 'trained_models/'+args.dataset+"_"+args.model+'_epochs_' + str(args.epochs)+'_lr_' + str(args.learning_rate)+'_' + args.regType +'_lamb_' + str(args.lambda_reg)+'_optim_' + str(args.optim)
 	print(outString)
 	
 	exec("from src.models import %s" % args.model)
