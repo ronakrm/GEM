@@ -50,10 +50,21 @@ def getHist(acts, nbins=10):
 	dist = torch.histc(cdfs, bins=nbins, min=0, max=1)
 	return dist/sum(dist)
 
+def getGTDist(targets, uniq_targs):
+
+	dist = []
+	for t in uniq_targs:
+		d = sum(targets==t)/len(targets)
+		dist.append(d)
+
+	return dist
+
 def genClassificationReport(acts, targets, attrs, dist=None, nbins=10, threshold=0.5, verbose=False):
 
 	groups = torch.unique(attrs).numpy()
+	targs = torch.unique(targets)
 
+	gtdists = {}
 	hists = {}
 	accs = {}
 	dp = {}
@@ -62,22 +73,26 @@ def genClassificationReport(acts, targets, attrs, dist=None, nbins=10, threshold
 	for group in groups:
 		gacts = acts[attrs==group]
 		gtargets = targets[attrs==group]
+		gtdists[group] = getGTDist(gtargets, targs)
 		accs[group] = getAcc(gacts, gtargets, threshold=threshold).detach().cpu().numpy()
 		dp[group] = getDP(gacts, gtargets, threshold=threshold).detach().cpu().numpy()
 		eo[group] = getEO(gacts, gtargets, threshold=threshold).detach().cpu().numpy()
 		hists[group] = getHist(gacts, nbins=nbins)
 
+	total_gt = getGTDist(targets, targs)
 	total_acc = getAcc(acts, targets, threshold=threshold)
+	total_dp = getDP(acts, targets, threshold=threshold).detach().cpu().numpy()
+	total_eo = getEO(acts, targets, threshold=threshold).detach().cpu().numpy()
 	full_hist = getHist(acts, nbins=nbins).detach().cpu().numpy()
 
 	if verbose:
 		print('*'*5, 'Classification Report', '*'*5)
 		with np.printoptions(precision=3, suppress=True):
-			print('Class\t\tAcc\t\tDP\t\tEO\t\tHist')
+			print('Class\t\tTruth\t\t\tAcc\t\tDP\t\tEO\t\tHist')
 			for group in groups:
-				print(f'{group}\t\t{accs[group]:.4f}\t\t{dp[group]:.4f}\t\t{eo[group]:.4f}\t\t{hists[group].detach().cpu().numpy()}')
-			print(f'Total Acc: {total_acc}')
-			print(f'Global Hist: {full_hist}')
+				print(f'{group}\t\t{gtdists[group][0]:.4f} {gtdists[group][1]:.4f}\t\t{accs[group]:.4f}\t\t{dp[group]:.4f}\t\t{eo[group]:.4f}\t\t{hists[group].detach().cpu().numpy()}')
+
+			print(f'Total\t\t{total_gt[0]:.4f} {total_gt[1]:.4f}\t\t{total_acc:.4f}\t\t{total_dp:.4f}\t\t{total_eo:.4f}\t\t{full_hist}')
 
 	if dist is not None:
 		stacked = torch.stack(list(hists.values()))
@@ -85,4 +100,4 @@ def genClassificationReport(acts, targets, attrs, dist=None, nbins=10, threshold
 		if verbose:
 			print(f'Full dEMD Distance: {demd}')
 
-	return accs, dp, eo, demd
+	return total_gt, accs, dp, eo, demd

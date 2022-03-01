@@ -71,9 +71,11 @@ def do_reg_epoch(model, dataloader, criterion, reg, dist,
 	else:
 		verbose = False
 
-	accs, dp, eo, valid_dist = genClassificationReport(tacts.cpu(), ttargets.cpu(), tattrs.cpu(),
+	gtdists, accs, dp, eo, valid_dist = genClassificationReport(tacts.cpu(), ttargets.cpu(), tattrs.cpu(),
 	 dist=dist, nbins=nbins, threshold=threshold,verbose=verbose)
 	vals = {}
+	vals['gt_0'] = gtdists[0]
+	vals['gt_1'] = gtdists[1]
 	vals['maxacc'] = max(accs.values()).item()
 	vals['minacc'] = min(accs.values()).item()
 	vals['dp_gap'] = (max(dp.values()) - min(dp.values())).item()
