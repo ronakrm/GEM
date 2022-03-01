@@ -33,7 +33,7 @@ def main(args):
 	model = eval(args.model)(input_size=args.input_size, num_classes=args.n_classes).to(device)
 
 	criterion = torch.nn.BCELoss().to(device)
-	sens_classes = [*range(1,args.nSens+1)]
+	sens_classes = [*range(0,args.nSens)]
 
 	if args.regType == 'demd':
 		reg = DEMDLayer(discretization=args.nbins).to(device)
