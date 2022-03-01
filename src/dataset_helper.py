@@ -52,6 +52,8 @@ def getDatasets(name='adult',
 										n_samples=1000)
 	
 	elif name == 'celeba':
+		target = 'Smiling'
+		attr_cols = ['Young']
 		from src.datasets import CelebA
 
 		train_dataset = CelebA(root='./data/celeba/', train=True, target=target, 

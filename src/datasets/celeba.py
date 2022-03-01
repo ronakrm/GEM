@@ -49,8 +49,11 @@ class CelebA(data.Dataset):
 		except FileNotFoundError:
 			raise ValueError("Image partition file {:s} does not exist".format(os.path.join(root, self.partition_file)))
 
-		self.sel_rows = self.part_data.loc[self.part_data['partition']==self.train]
-		self.sel_attrs = self.attr_data.loc[self.part_data['partition']==self.train]
+		# train==True -> should be 0 in the txt file
+		# valid: train==False -> 1 in txt file
+		split = int(not train)
+		self.sel_rows = self.part_data.loc[self.part_data['partition']==split]
+		self.sel_attrs = self.attr_data.loc[self.part_data['partition']==split]
 		# self.sel_attrs = self.attr_data.loc[self.attr_data['image_id'].isin(self.sel_rows['image_id'])]
 
 		self.image_names = self.sel_rows.iloc[:,0].to_numpy()
