@@ -45,6 +45,23 @@ def getAcc(acts, labels, threshold=0.5):
 	else:
 		return (y_sig.max(1)[1] == labels).float().mean()
 
+
+# for binary only
+def getKS(acts, labels, groups, resolution=1000):
+
+    tt = np.linspace(min(labels), max(labels), resolution)
+    vv = np.unique(groups)
+    nn = [sum(groups==vv[0]), sum(groups==vv[1])]
+    ks = torch.Tensor([0.0])
+    for t in tt:
+        ks = max(ks, abs(sum(acts[groups==vv[0]]<=t)/nn[0] - \
+        			     sum(acts[groups==vv[1]]<=t)/nn[1] ) )
+
+    return ks.item()
+
+def getMSE(acts, labels):
+	return ((acts - labels)**2).float().mean()
+
 def getHist(acts, nbins=10):
 	cdfs = torch.sigmoid(acts)
 	dist = torch.histc(cdfs, bins=nbins, min=0, max=1)
@@ -101,3 +118,43 @@ def genClassificationReport(acts, targets, attrs, dist=None, nbins=10, threshold
 			print(f'Full dEMD Distance: {demd}')
 
 	return total_gt, accs, dp, eo, demd
+
+
+
+def genRegressionReport(acts, targets, attrs, dist=None, nbins=10, verbose=False):
+
+	groups = torch.unique(attrs).numpy()
+	targs = torch.unique(targets)
+
+	gtdists = {}
+	hists = {}
+	mses = {}
+
+	for group in groups:
+		gacts = acts[attrs==group]
+		gtargets = targets[attrs==group]
+		gtdists[group] = getGTDist(gtargets, targs)
+		mses[group] = getMSE(gacts, gtargets).detach().cpu().numpy()
+		hists[group] = getHist(gacts, nbins=nbins)
+
+	total_gt = getGTDist(targets, targs)
+	total_mse = getMSE(acts, targets)
+	total_ks = getKS(acts, targets, attrs)
+	full_hist = getHist(acts, nbins=nbins).detach().cpu().numpy()
+
+	if verbose:
+		print('*'*5, 'Regression Report', '*'*5)
+		with np.printoptions(precision=3, suppress=True):
+			print('Class\t\tTruth\t\t\tMSE\t\tKS\t\tHist')
+			for group in groups:
+				print(f'{group}\t\t{gtdists[group][0]:.4f} {gtdists[group][1]:.4f}\t\t{mses[group]:.4f}\t\t\t\t{hists[group].detach().cpu().numpy()}')
+
+			print(f'Total\t\t{total_gt[0]:.4f} {total_gt[1]:.4f}\t\t{total_mse:.4f}\t\t{total_ks:.4f}\t\t{full_hist}')
+
+	if dist is not None:
+		stacked = torch.stack(list(hists.values()))
+		demd = dist(stacked).item()
+		if verbose:
+			print(f'Full dEMD Distance: {demd}')
+
+	return total_gt, total_mse, total_ks, mses, demd

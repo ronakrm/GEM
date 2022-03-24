@@ -9,13 +9,68 @@ class OTWBLoss(nn.Module):
 	def __init__(self, n, device='cpu'):
 		super().__init__()
 
+		self.n = n # problem dimension, d in sinkbary notation
 		x = np.arange(n, dtype=np.float64).reshape((n, 1))
-
 		self.M = torch.Tensor(ot.utils.dist(x, x, metric='minkowski')).to(device)
+		
+		tmp = np.ones([n,1])/n
+		self.bary_est = torch.from_numpy(tmp).to(device=device).requires_grad_(True)
+
+		# import pdb; pdb.set_trace()
 
 	def forward(self, x):
-		loss = ot.emd2(x[0], x[1], self.M)
-		return loss
+		d = len(x)
+		loss = torch.Tensor([0]).to(x[0].device)
+		for i in range(d):
+			for j in range(1):
+				group_loss = ot.emd2(x[i], self.bary_est, self.M)[0]
+				# group_loss = ot.sinkhorn2(x[i], self.bary_est, self.M, reg=torch.Tensor([0.01]))
+				loss += group_loss
+
+		return loss, self.bary_est
+
+# class DebiasedSinkhornBarycenter(nn.Module):
+# 	def __init__(self, n, device='cpu', eps=1e-6):
+
+# 		self.n = n # problem dimension, d in sinkbary notation
+# 		self.eps = eps
+# 		x = np.arange(n, dtype=np.float64).reshape((n, 1))
+# 		self.C = torch.Tensor(ot.utils.dist(x, x, metric='minkowski')).to(device)
+# 		self.K = torch.exp(-1*self.C/self.eps)
+
+# 	def forward(self, x):
+		
+# 		a = torch.zeros_like(x)
+# 		for k in range(d):
+# 			a[k,:] = x[k,:]/(self.K*b[k,:])
+
+
+class POTWassersteinBary(nn.Module):
+	def __init__(self, n, device='cpu'):
+		super().__init__()
+
+		self.n = n # problem dimension, d in sinkbary notation
+		x = np.arange(n, dtype=np.float64).reshape((n, 1))
+		self.bins = torch.tensor(x).to(device=device)
+		self.C = torch.Tensor(ot.utils.dist(x, x, metric='minkowski')).to(device)
+
+		
+		tmp = np.ones([n,1])/n
+
+		self.bary_est = torch.from_numpy(tmp).to(device=device).requires_grad_(True)
+
+		# import pdb; pdb.set_trace()
+
+	def forward(self, x):
+		d = len(x)
+		loss = torch.Tensor([0]).to(x[0].device)
+		for i in range(d):
+			for j in range(5):
+				group_loss = ot.wasserstein_1d(self.bins, self.bins, x[i], self.bary_est, p=2)
+				loss += group_loss
+
+		return loss, self.bary_est
+
 
 class WassersteinBarycenter(nn.Module):
 	def __init__(self, discretization=10, verbose=False):
@@ -26,7 +81,8 @@ class WassersteinBarycenter(nn.Module):
 		self.cdf = nn.Sigmoid()
 		self.Hist = HistoBin(nbins=discretization)
 
-		self.fairMeasure = OTWBLoss(n=self.discretization, device='cpu')
+		self.fairMeasure = OTWBLoss(n=self.discretization, device='cuda:0')
+		# self.fairMeasure = POTWassersteinBary(n=self.discretization, device='cuda:0')
 
 	def forward(self, acts, group_labels):
 		groups = torch.unique(group_labels)
@@ -46,7 +102,7 @@ class WassersteinBarycenter(nn.Module):
 
 	def genHists(self, samples, nbins=10):
 		# convert to [0,1] via sigmoid
-		cdfs = self.cdf(samples) - 0.000001 # for boundary case at end
+		cdfs = self.cdf(samples) - 0.0001 # for boundary case at end
 		dist = self.Hist(cdfs)
 		# dist = torch.histc(cdfs, bins=nbins, min=0, max=1)
 		return dist/dist.sum()
@@ -72,7 +128,6 @@ class HistoBin(nn.Module):
 		out = torch.stack(counts)
 		
 		if self.norm:
-			summ = out.sum() + .000001
-			out = out / summ
-			# return (out.transpose(1,0) / summ).transpose(1,0)
+			out = out + 0.0001
+			out = out / out.sum()
 		return out

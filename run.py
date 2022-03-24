@@ -32,7 +32,10 @@ def main(args):
 	exec("from src.models import %s" % args.model)
 	model = eval(args.model)(input_size=args.input_size, num_classes=args.n_classes).to(device)
 
-	criterion = torch.nn.BCELoss().to(device)
+	if args.problemType == 'class':
+		criterion = torch.nn.BCELoss().to(device)
+	elif args.problemType == 'regress':
+		criterion = torch.nn.MSELoss().to(device)
 	sens_classes = [*range(0,args.nSens)]
 
 	if args.regType == 'demd':
@@ -53,7 +56,7 @@ def main(args):
 	optim = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
 	train_dataset, valid_dataset = getDatasets(args.dataset,
-												download=True)
+												download=True, seed=args.train_seed)
 
 	print(f'Train Dataset Size: {len(train_dataset)}')
 	print(f'Valid Dataset Size: {len(valid_dataset)}')
@@ -70,11 +73,11 @@ def main(args):
 	for epoch in range(args.epochs):
 		print(f'*** EPOCH {epoch} ***')
 		tic = time.time()
-		train_loss, train_accuracy, train_dist, _ = do_reg_epoch(model, train_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, regType=args.regType, optim=optim, device=device, outString=outString)
+		train_loss, train_accuracy, train_dist, _ = do_reg_epoch(model, train_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, problemType=args.problemType, regType=args.regType, optim=optim, device=device, outString=outString)
 
 		tottraintime += (time.time() - tic)
 		with torch.no_grad():
-			valid_loss, valid_accuracy, valid_dist, valstats = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, regType=args.regType, optim=None, device=device, outString=outString)
+			valid_loss, valid_accuracy, valid_dist, valstats = do_reg_epoch(model, valid_loader, criterion, reg, dist, epoch, args.epochs, args.lambda_reg, args.nbins, problemType=args.problemType, regType=args.regType, optim=None, device=device, outString=outString)
 
 		tqdm.write(f'{args.model} EPOCH {epoch:03d}: train_loss={train_loss:.4f}, train_accuracy={train_accuracy:.4f} '
 				   f'valid_loss={valid_loss:.4f}, valid_accuracy={valid_accuracy:.4f}, train_demd_dist={train_dist:f}')
@@ -102,7 +105,8 @@ if __name__ == '__main__':
 	arg_parser = argparse.ArgumentParser(description='D-EMD NNs')
 	arg_parser.add_argument('--train_seed', type=int, default=0)
 	arg_parser.add_argument('--dataset', type=str, default='acs-employ')
-	arg_parser.add_argument('--model', type=str, default='ACSEmploymentNet')
+	arg_parser.add_argument('--model', type=str, default='ACSNet')
+	arg_parser.add_argument('--problemType', type=str, default='class', choices=['class', 'regress'])
 	arg_parser.add_argument('--batch_size', type=int, default=128)
 	arg_parser.add_argument('--optim', type=str, default='sgd', choices=['sgd', 'adam'])
 	arg_parser.add_argument('--epochs', type=int, default=1)

@@ -4,3 +4,4 @@ from .binsizemnist import *
 from .uci import *
 from .acs import *
 from .celeba import *
+from .regress import *
