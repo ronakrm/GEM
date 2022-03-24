@@ -81,8 +81,8 @@ class WassersteinBarycenter(nn.Module):
 		self.cdf = nn.Sigmoid()
 		self.Hist = HistoBin(nbins=discretization)
 
-		self.fairMeasure = OTWBLoss(n=self.discretization, device='cuda:0')
-		# self.fairMeasure = POTWassersteinBary(n=self.discretization, device='cuda:0')
+		# self.fairMeasure = OTWBLoss(n=self.discretization, device='cuda:0')
+		self.fairMeasure = POTWassersteinBary(n=self.discretization, device='cpu')
 
 	def forward(self, acts, group_labels):
 		groups = torch.unique(group_labels)
