@@ -1,10 +1,14 @@
 import torch
 import torch.nn as nn
+
+import random
+
 from .demdFunc import dEMD, OBJ
 from .demdLoss import dEMDLossFunc
 
+
 class DEMDLayer(nn.Module):
-	def __init__(self, cost=OBJ, discretization=10, verbose=False):
+	def __init__(self, cost=OBJ, discretization=10, order='fixed', verbose=False):
 		super().__init__()
 
 		self.cost = cost
@@ -16,6 +20,8 @@ class DEMDLayer(nn.Module):
 
 		self.fairMeasure = dEMDLossFunc
 
+		self.order = order
+
 	def forward(self, acts, group_labels):
 		groups = torch.unique(group_labels)
 		d = len(groups)
@@ -24,6 +30,11 @@ class DEMDLayer(nn.Module):
 		for i in range(d):
 			idxs = group_labels==groups[i]
 			g_dist = self.genHists(acts[idxs], nbins=self.discretization)
+
+		if self.order == 'randomized':
+			random.shuffle(grouped_dists)
+		elif self.order == 'fixed':
+			pass
 
 		torch_dists = torch.stack(grouped_dists).requires_grad_(requires_grad=True)
 

@@ -35,11 +35,11 @@ def test(params):
 
 	tacts = torch.Tensor(np.array(acts)).requires_grad_(requires_grad=True)
 
-	### Model/Layer
+	### Model/Layer 
 	if params.distType == 'demd':
-		myl = DEMDLayer(discretization=params.nbins)
+		myl = DEMDLayer(discretization=params.nbins, order='randomized')
 	elif params.distType == 'pairwass':
-		myl = WassersteinBarycenter(discretization=nbins)
+		myl = WassersteinBarycenter(discretization=params.nbins)
 
 	groups = np.unique(group_labels)
 	for i in range(params.d):
@@ -78,6 +78,13 @@ def test(params):
 		print(myl.genHists(tacts[idxs],nbins=params.nbins))
 	print(f'Took {toc-tic} seconds.')
 
+	demdcompute =  DEMDLayer(discretization=params.nbins, order='fixed')
+	endDemd = demdcompute(tacts, group_labels)
+	wasbarycompute = WassersteinBarycenter(discretization=params.nbins)
+	endPair, _ = wasbarycompute(tacts, group_labels)
+
+	run_dict['demd_end'] = endDemd.item()
+	run_dict['pair_end'] = endPair.item()
 	run_dict['loss'] = res.item()
 	run_dict['total_time'] = toc-tic
 	run_dict['time_per_epoch'] = (toc-tic) / params.n_epochs
