@@ -24,7 +24,6 @@ class DEMDLayer(nn.Module):
 		for i in range(d):
 			idxs = group_labels==groups[i]
 			g_dist = self.genHists(acts[idxs], nbins=self.discretization)
-			grouped_dists.append(g_dist)
 
 		torch_dists = torch.stack(grouped_dists).requires_grad_(requires_grad=True)
 
@@ -34,7 +33,7 @@ class DEMDLayer(nn.Module):
 
 	def genHists(self, samples, nbins=10):
 		# convert to [0,1] via sigmoid
-		cdfs = self.cdf(samples) - 0.000001 # for boundary case at end
+		cdfs = self.cdf(samples) - 0.0001 # for boundary case at end
 		dist = self.Hist(cdfs)
 		# dist = torch.histc(cdfs, bins=nbins, min=0, max=1)
 		return dist/dist.sum()
@@ -60,7 +59,6 @@ class HistoBin(nn.Module):
 		out = torch.stack(counts)
 		
 		if self.norm:
-			summ = out.sum() + .000001
-			out = out / summ
-			# return (out.transpose(1,0) / summ).transpose(1,0)
+			out = out + 0.0001
+			out = out / out.sum()
 		return out
