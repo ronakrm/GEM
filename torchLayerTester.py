@@ -15,14 +15,9 @@ def test(params):
 	print('*'*10)    
 	np.random.seed(params.seed)
 
-	run_dict = vars(args)
 
 	### Parameters
-	n = 100  # number of samples
-	d = 4 # number of groups
-	nbins = 10
-	lr = 0.01
-	n_epochs = 10000
+	run_dict = vars(args)
 
 	### Data
 	group_labels = torch.from_numpy(np.random.randint(0, params.d, size=(params.n,)))
