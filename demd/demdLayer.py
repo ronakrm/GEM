@@ -30,6 +30,7 @@ class DEMDLayer(nn.Module):
 		for i in range(d):
 			idxs = group_labels==groups[i]
 			g_dist = self.genHists(acts[idxs], nbins=self.discretization)
+			grouped_dists.append(g_dist)
 
 		if self.order == 'randomized':
 			random.shuffle(grouped_dists)

@@ -41,7 +41,7 @@ def main(args):
 	if args.regType == 'demd':
 		reg = DEMDLayer(discretization=args.nbins).to(device)
 	elif args.regType == 'wasbary':
-		reg = WassersteinBarycenter(discretization=args.nbins).to(device)
+		reg = WassersteinBarycenter(discretization=args.nbins,device=device).to(device)
 	elif args.regType == 'dp':
 		reg = DemographicParityLoss(sensitive_classes=sens_classes, alpha=1.0).to(device)
 	elif args.regType == 'eo':
@@ -62,7 +62,7 @@ def main(args):
 	print(f'Valid Dataset Size: {len(valid_dataset)}')
 
 	train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size,
-											  shuffle=True, num_workers=1)
+											  shuffle=True, num_workers=1, drop_last=args.droplast)
 
 	valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch_size,
 											 shuffle=False, num_workers=1)
@@ -119,6 +119,7 @@ if __name__ == '__main__':
 	arg_parser.add_argument('--lambda_reg', type=float, default=1e-5, help='dEMD reg weight')
 	arg_parser.add_argument('--nbins', type=int, default=10, help='number of bins for histogram')
 	arg_parser.add_argument('--nSens', type=int, default=10, help='number of sensitive classes')
+	arg_parser.add_argument('--droplast', type=bool, default=False, help='drop last batch in training dloader')
 	arg_parser.add_argument('--outfile', type=str, default='results/tmp_resnew.csv', help='results file to print to')
 	args = arg_parser.parse_args()
 	# arg_parser.print_help()

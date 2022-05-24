@@ -10,7 +10,8 @@ def getData(n, d, dist='skewedGauss'):
 
     data = []
     for i in range(d):
-        m = 100*np.random.rand(1)
+        # m = 100*np.random.rand(1)
+        m = n*(0.5*np.random.rand(1))*float(np.random.randint(2)+1)
         if dist == 'skewedGauss':
         	a = ot.datasets.make_1D_gauss(n, m=m, s=5)
         elif dist == 'uniform':
