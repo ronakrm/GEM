@@ -65,15 +65,14 @@ class POTWassersteinBary(nn.Module):
 		d = len(x)
 		loss = torch.Tensor([0]).to(x[0].device)
 		for i in range(d):
-			for j in range(5):
-				group_loss = ot.wasserstein_1d(self.bins, self.bins, x[i], self.bary_est, p=2)
-				loss += group_loss
+			group_loss = ot.wasserstein_1d(self.bins, self.bins, x[i], self.bary_est, p=2)
+			loss += group_loss
 
 		return loss, self.bary_est
 
 
 class WassersteinBarycenter(nn.Module):
-	def __init__(self, discretization=10, verbose=False):
+	def __init__(self, discretization=10, verbose=False, device='cpu'):
 		super().__init__()
 		self.verbose = verbose
 		self.discretization = discretization
@@ -82,7 +81,7 @@ class WassersteinBarycenter(nn.Module):
 		self.Hist = HistoBin(nbins=discretization)
 
 		# self.fairMeasure = OTWBLoss(n=self.discretization, device='cuda:0')
-		self.fairMeasure = POTWassersteinBary(n=self.discretization, device='cpu')
+		self.fairMeasure = POTWassersteinBary(n=self.discretization, device=device)
 
 	def forward(self, acts, group_labels):
 		groups = torch.unique(group_labels)

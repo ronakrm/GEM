@@ -41,16 +41,14 @@ class myDataset(Dataset):
 class ACSEmployment(myDataset):
 	def __init__(self, **kwargs):
 		data_source = folktables.ACSDataSource(survey_year='2018', horizon='1-Year', survey='person')
-		acs_data = data_source.get_data(states=["CA"], download=True)
+		acs_data = data_source.get_data(states=["LA"], download=True)
 		self.features, self.label, self.group = folktables.ACSEmployment.df_to_numpy(acs_data)
-		
 		super().__init__(**kwargs)
 
 
 class ACSIncome(myDataset):
 	def __init__(self, **kwargs):
 		data_source = folktables.ACSDataSource(survey_year='2018', horizon='1-Year', survey='person')
-		acs_data = data_source.get_data(states=["CA"], download=True)
+		acs_data = data_source.get_data(states=["LA"], download=True)
 		self.features, self.label, self.group = folktables.ACSIncome.df_to_numpy(acs_data)
-		
 		super().__init__(**kwargs)

@@ -5,3 +5,7 @@ from .uci import *
 from .acs import *
 from .celeba import *
 from .regress import *
+from .gerryfair_data import *
+from .clean import *
+from .localds import *
+from .crime import *
